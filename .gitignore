@@ -28,3 +28,7 @@ Homestead.json
 .env.production
 .phpactor.json
 auth.json
+
+# MediaMTX auto-generated TLS certs (created if the server runs with this dir as CWD)
+auto.crt
+auto.key

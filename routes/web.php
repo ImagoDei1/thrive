@@ -3,6 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
+Route::get('hls/{slug}/{file}', \App\Http\Controllers\HlsPlaybackController::class)
+    ->where('file', '.*\.(m3u8|ts|m4s)')
+    ->name('hls.playback');
+
 Route::get('/', function () {
     if (auth()->check()) {
         return match(auth()->user()->role) {

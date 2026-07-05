@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\HeartbeatController;
+use App\Http\Controllers\Api\MediaMtxController;
 use App\Http\Controllers\Api\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,6 +12,17 @@ use Illuminate\Support\Facades\Route;
 // ---------------------------------------------------------------------------
 Route::post('login', [AuthController::class, 'login']);
 Route::post('register', [AuthController::class, 'register']);
+
+// ---------------------------------------------------------------------------
+// MediaMTX server callbacks — not user auth. Secret travels as a query param
+// baked into the URLs configured in mediamtx.yml (authHTTPAddress / runOnReady
+// / runOnNotReady), verified by the 'mediamtx' middleware.
+// ---------------------------------------------------------------------------
+Route::middleware('mediamtx')->prefix('mediamtx')->group(function () {
+    Route::post('auth',        [MediaMtxController::class, 'auth']);
+    Route::post('published',   [MediaMtxController::class, 'published']);
+    Route::post('unpublished', [MediaMtxController::class, 'unpublished']);
+});
 
 // ---------------------------------------------------------------------------
 // Authenticated — Bearer api_token required

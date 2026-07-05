@@ -56,11 +56,11 @@ class ChannelCreate extends Component
             'category'        => $this->category,
             'language'        => $this->language,
             'rtmp_key'        => Str::random(32),
-            'rtmp_ingest_url' => config('streaming.rtmp_ingest_url', 'rtmp://stream.' . config('app.url') . '/live'),
+            'rtmp_ingest_url' => config('streaming.rtmp_ingest_url'),
         ]);
 
         $channel->update([
-            'hls_playback_url' => config('streaming.hls_base_url', 'https://stream.' . parse_url(config('app.url'), PHP_URL_HOST)) . '/hls/' . $channel->slug . '.m3u8',
+            'hls_playback_url' => route('hls.playback', ['slug' => $channel->slug, 'file' => 'index.m3u8']),
         ]);
 
         $this->success('Channel created. Copy your RTMP key to start streaming.');

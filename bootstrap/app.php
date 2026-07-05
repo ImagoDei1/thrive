@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role'              => \App\Http\Middleware\RoleMiddleware::class,
             'auth.api'          => \App\Http\Middleware\ApiTokenMiddleware::class,
             'provider.approved' => \App\Http\Middleware\ProviderApprovedMiddleware::class,
+            'mediamtx'          => \App\Http\Middleware\VerifyMediaMtxSecret::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

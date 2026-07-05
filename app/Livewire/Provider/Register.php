@@ -117,12 +117,12 @@ class Register extends Component
             'category'        => $this->channel_category,
             'language'        => $this->channel_language,
             'rtmp_key'        => Str::random(32),
-            'rtmp_ingest_url' => config('streaming.rtmp_ingest_url', 'rtmp://stream.' . parse_url(config('app.url'), PHP_URL_HOST) . '/live'),
+            'rtmp_ingest_url' => config('streaming.rtmp_ingest_url'),
             'is_active'       => false,
         ]);
 
         $channel->update([
-            'hls_playback_url' => config('streaming.hls_base_url', 'https://stream.' . parse_url(config('app.url'), PHP_URL_HOST)) . '/hls/' . $slug . '.m3u8',
+            'hls_playback_url' => route('hls.playback', ['slug' => $slug, 'file' => 'index.m3u8']),
         ]);
 
         Auth::login($user);
