@@ -1,4 +1,4 @@
-<div>
+<div wire:poll.10s>
     <x-header title="Channels" subtitle="All provider channels" separator progress-indicator>
         <x-slot:middle class="!justify-end">
             <x-input placeholder="Search channels..." wire:model.live.debounce="search" icon="o-magnifying-glass" clearable />

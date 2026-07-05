@@ -1,4 +1,4 @@
-<div>
+<div wire:poll.5s>
     <x-header title="Stream Setup" subtitle="{{ $channel->name }}" separator progress-indicator>
         <x-slot:actions>
             <x-button label="Channel Info" icon="o-information-circle"

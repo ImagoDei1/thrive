@@ -1,4 +1,4 @@
-<div>
+<div wire:poll.10s>
     <x-header title="{{ $channel->name }}" subtitle="Channel Information" separator progress-indicator>
         <x-slot:actions>
             <x-button label="Stream Setup" icon="o-signal" link="{{ route('provider.channels.setup', $channel) }}" wire:navigate class="btn-primary" />

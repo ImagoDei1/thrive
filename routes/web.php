@@ -7,6 +7,12 @@ Route::get('hls/{slug}/{file}', \App\Http\Controllers\HlsPlaybackController::cla
     ->where('file', '.*\.(m3u8|ts|m4s)')
     ->name('hls.playback');
 
+Route::get('watch/{slug}', function (string $slug) {
+    $channel = \App\Models\Channel::where('slug', $slug)->where('is_active', true)->firstOrFail();
+
+    return view('watch', ['channel' => $channel]);
+})->name('watch');
+
 Route::get('/', function () {
     if (auth()->check()) {
         return match(auth()->user()->role) {

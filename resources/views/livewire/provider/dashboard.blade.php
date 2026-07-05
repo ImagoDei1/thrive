@@ -1,4 +1,4 @@
-<div>
+<div wire:poll.10s>
     <x-header title="Dashboard" separator progress-indicator>
         <x-slot:actions>
             <div class="flex items-center gap-2 text-sm text-base-content/60 bg-base-200 rounded-lg px-3 py-2">

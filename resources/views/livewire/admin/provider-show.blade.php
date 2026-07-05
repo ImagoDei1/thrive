@@ -1,4 +1,4 @@
-<div>
+<div wire:poll.10s>
     <x-header title="{{ $provider->company_name }}" subtitle="Provider Profile" separator progress-indicator>
         <x-slot:actions>
             <x-button label="Back" icon="o-arrow-left" link="{{ route('admin.providers.index') }}" class="btn-ghost" wire:navigate />
