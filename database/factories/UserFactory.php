@@ -41,4 +41,34 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    /**
+     * Indicate that the user is an admin.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
+        ]);
+    }
+
+    /**
+     * Indicate that the user is a provider.
+     */
+    public function provider(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'provider',
+        ]);
+    }
+
+    /**
+     * Indicate that the user is a subscriber.
+     */
+    public function subscriber(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'subscriber',
+        ]);
+    }
 }
