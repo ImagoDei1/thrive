@@ -118,3 +118,35 @@ Flutter heartbeat (every 30s, only when playing)
 - Do not write migrations with MySQL-specific syntax (`AUTO_INCREMENT`, `VARCHAR` without length on PK)
 - Do not add `@tailwindcss/forms` plugin — conflicts with daisyUI
 - Do not put lengthy documentation in this file — link to `/docs` instead
+
+## NEW TRAJECTORY
+## Bunny Stream Integration (Phase 1)
+- Account API key stored in BUNNY_API_KEY env var
+- Stream API base: https://video.bunnycdn.com/library
+- Each provider gets their own Bunny library (bunny_library_id on provider_profiles)
+- Each channel gets bunny_stream_id for live (future)
+- content_items stores bunny_video_id and bunny_library_id
+- VideoSourceService resolves HLS URLs — never reference Bunny directly in controllers
+- TUS endpoint: https://video.bunnycdn.com/tusupload
+- Webhook endpoint: POST /webhooks/bunny
+- Priority: VOD upload flow first, live streaming later
+- Implementation details and setup: see `docs/bunny-stream.md`
+
+Provider → MaryUI Provider Portal
+  └── Selects file for upload
+        ↓
+  Laravel initiates TUS session with Bunny API
+  POST /library/{bunny_library_id}/videos
+        ↓
+  TUS resumable upload (survives interruptions)
+        ↓
+  Bunny transcodes to multi-bitrate HLS automatically (free)
+        ↓
+  Bunny fires webhook → POST /webhooks/bunny (Laravel)
+        ↓
+  Laravel updates content_items:
+  ├── status: 'ready'
+  ├── hls_url: signed Bunny HLS URL
+  └── bunny_video_id: stored for reference
+        ↓
+  Content appears in Flutter app

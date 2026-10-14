@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Provider;
 
 use App\Livewire\Concerns\HasConfirmModal;
+use App\Livewire\Concerns\HasVideoPreview;
 use App\Models\Channel;
 use App\Models\ContentItem;
 use Livewire\Attributes\Title;
@@ -15,7 +16,7 @@ use Mary\Traits\Toast;
 #[Title('Videos')]
 class ContentItems extends Component
 {
-    use HasConfirmModal, Toast, WithPagination;
+    use HasConfirmModal, HasVideoPreview, Toast, WithPagination;
 
     public Channel $channel;
 
@@ -34,6 +35,14 @@ class ContentItems extends Component
             auth()->user()->providerProfile?->id === $channel->provider_id,
             403
         );
+    }
+
+    public function preview(string $id): void
+    {
+        $item = ContentItem::where('channel_id', $this->channel->id)->findOrFail($id);
+        $item->setRelation('channel', $this->channel->loadMissing('provider'));
+
+        $this->openPreview($item, $this->channel->name);
     }
 
     public function confirmDelete(string $id): void
@@ -56,10 +65,17 @@ class ContentItems extends Component
 
     public function render()
     {
+        $this->channel->loadMissing('provider');
+
+        $items = ContentItem::where('channel_id', $this->channel->id)
+            ->latest()
+            ->paginate(15);
+
+        $items->getCollection()->each(fn (ContentItem $item) => $item->setRelation('channel', $this->channel));
+
         return view('livewire.provider.content-items', [
-            'items' => ContentItem::where('channel_id', $this->channel->id)
-                ->latest()
-                ->paginate(15),
+            'items'      => $items,
+            'hasPending' => $items->getCollection()->contains(fn ($i) => $i->status === 'processing'),
         ])->layout('components.provider-layout');
     }
 }

@@ -28,7 +28,7 @@ class BillingPeriods extends Component
         return [
             'periodLabel' => [
                 'required',
-                ValidationRule::regex('/^\d{4}-(0[1-9]|1[0-2])$/'),
+                'regex:/^\d{4}-(0[1-9]|1[0-2])$/',
                 ValidationRule::unique('billing_periods', 'period_label'),
             ],
             'cutoffDay' => ['required', 'integer', 'min:1', 'max:28'],

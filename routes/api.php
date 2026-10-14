@@ -37,6 +37,7 @@ Route::middleware('auth.api')->group(function () {
     Route::get('categories',       [CatalogController::class, 'categories']);
     Route::get('channels',         [CatalogController::class, 'channels']);
     Route::get('channels/{id}',    [CatalogController::class, 'channel']);
+    Route::get('playlists/{id}',   [CatalogController::class, 'playlist']);
 
     // Plans & subscriptions
     Route::get('plans',                      [SubscriptionController::class, 'plans']);

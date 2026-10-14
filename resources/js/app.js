@@ -1,3 +1,5 @@
+import './bunny-upload';
+
 document.addEventListener('livewire:init', () => {
     Livewire.hook('request', ({fail}) => {
         fail(({status, content, preventDefault}) => {

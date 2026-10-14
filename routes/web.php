@@ -7,6 +7,10 @@ Route::get('hls/{slug}/{file}', \App\Http\Controllers\HlsPlaybackController::cla
     ->where('file', '.*\.(m3u8|ts|m4s)')
     ->name('hls.playback');
 
+Route::post('webhooks/bunny', \App\Http\Controllers\BunnyWebhookController::class)
+    ->middleware(['bunny.webhook', 'throttle:120,1'])
+    ->name('webhooks.bunny');
+
 Route::get('watch/{slug}', function (string $slug) {
     $channel = \App\Models\Channel::where('slug', $slug)->where('is_active', true)->firstOrFail();
 
@@ -40,6 +44,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('providers',              \App\Livewire\Admin\Providers::class)->name('providers.index');
     Route::get('providers/{provider}',   \App\Livewire\Admin\ProviderShow::class)->name('providers.show');
     Route::get('channels',               \App\Livewire\Admin\Channels::class)->name('channels.index');
+    Route::get('content',                \App\Livewire\Admin\ContentItems::class)->name('content.index');
     Route::get('change-requests',        \App\Livewire\Admin\ChangeRequests::class)->name('change-requests.index');
     Route::get('billing',                \App\Livewire\Admin\BillingPeriods::class)->name('billing.index');
     Route::get('payouts',                \App\Livewire\Admin\Payouts::class)->name('payouts.index');
@@ -63,6 +68,10 @@ Route::middleware(['auth', 'role:provider', 'provider.approved'])->prefix('provi
     Route::get('channels/{channel}',               \App\Livewire\Provider\ChannelInfo::class)->name('channels.show');
     Route::get('channels/{channel}/setup',         \App\Livewire\Provider\ChannelSetup::class)->name('channels.setup');
     Route::get('channels/{channel}/content',       \App\Livewire\Provider\ContentItems::class)->name('content.index');
+    Route::get('channels/{channel}/upload',        \App\Livewire\Provider\ContentUpload::class)->name('content.upload');
+    Route::get('channels/{channel}/playlists',     \App\Livewire\Provider\Playlists::class)->name('playlists.index');
+    Route::get('channels/{channel}/playlists/{playlist}', \App\Livewire\Provider\PlaylistShow::class)
+        ->scopeBindings()->name('playlists.show');
     Route::get('payouts',                          \App\Livewire\Provider\PayoutHistory::class)->name('payouts.index');
 });
 

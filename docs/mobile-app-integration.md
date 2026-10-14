@@ -38,6 +38,23 @@ backend on 2026-07-05.
   channel — poll/refresh the channel list; every 10–15 s on a "live now"
   screen is reasonable.
 
+## Playlists & series
+
+- `GET /api/channels/{id}` also returns `playlists`: `id`, `title`,
+  `description`, `kind` (`playlist` | `series`), `thumbnail_url` (falls back
+  to the first video's thumbnail), `item_count`. Only published playlists with
+  at least one ready video are listed.
+- `GET /api/playlists/{id}` returns `playlist`, `channel`, and either:
+  - `items` (kind `playlist`): videos in order, each with `position` (1-based), or
+  - `seasons` (kind `series`): `[{season_number, episodes: [...]}]`, each
+    episode with `season_number` and `episode_number`.
+  Items use the same shape as `content_items`, including the `hls_url` paywall rule.
+- A video can be in several playlists, so "next episode" / autoplay must
+  follow the playlist the viewer started from. Keep the `playlist_id` in
+  player state. Heartbeats are unchanged: send the video's `content_id` as usual.
+- Episode and position numbers are derived from order, so they can shift if
+  the provider reorders. Identify videos by `id`, never by number.
+
 ## Watch-time heartbeats (revenue-critical)
 
 - `POST /api/heartbeat` every 30 s, **only while `isPlaying &&

@@ -63,6 +63,7 @@
 
             <x-menu-item title="Providers" icon="o-building-office-2" link="{{ route('admin.providers.index') }}" wire:navigate />
             <x-menu-item title="Channels" icon="o-tv" link="{{ route('admin.channels.index') }}" wire:navigate />
+            <x-menu-item title="Content" icon="o-film" link="{{ route('admin.content.index') }}" wire:navigate />
             <x-menu-item title="Change Requests" icon="o-pencil-square" link="{{ route('admin.change-requests.index') }}" wire:navigate />
 
             <x-menu-separator />

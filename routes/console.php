@@ -17,3 +17,6 @@ Schedule::command('subscriptions:expire')->dailyAt('07:00');
 
 // Email subscribers expiring in 7 or 3 days — runs daily at 08:00
 Schedule::command('subscriptions:notify-expiring')->dailyAt('08:00');
+
+// Bunny Stream: catch missed webhooks and expire abandoned uploads — every 10 minutes
+Schedule::command('bunny:sync-pending')->everyTenMinutes()->withoutOverlapping();

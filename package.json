@@ -9,6 +9,7 @@
         "axios": "^1.7.4",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^1.0",
+        "tus-js-client": "^4.3.1",
         "vite": "^6.0"
     },
     "optionalDependencies": {
@@ -17,10 +18,8 @@
         "lightningcss-linux-x64-gnu": "^1.29.1"
     },
     "devDependencies": {
-        "@tailwindcss/typography": "^0.5.19",
-        "autoprefixer": "^10.5.0",
-        "daisyui": "^4.12.24",
-        "postcss": "^8.5.15",
-        "tailwindcss": "^3.4.19"
+        "@tailwindcss/vite": "^4.3.3",
+        "daisyui": "^5.7.50",
+        "tailwindcss": "^4.3.3"
     }
 }

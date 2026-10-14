@@ -29,6 +29,7 @@ class Channel extends Model
         'rtmp_key',
         'rtmp_ingest_url',
         'hls_playback_url',
+        'bunny_stream_id',
     ];
 
     protected function casts(): array
@@ -47,6 +48,11 @@ class Channel extends Model
     public function contentItems(): HasMany
     {
         return $this->hasMany(ContentItem::class);
+    }
+
+    public function playlists(): HasMany
+    {
+        return $this->hasMany(Playlist::class);
     }
 
     public function watchSessions(): HasMany

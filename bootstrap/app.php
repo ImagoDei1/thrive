@@ -17,7 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.api'          => \App\Http\Middleware\ApiTokenMiddleware::class,
             'provider.approved' => \App\Http\Middleware\ProviderApprovedMiddleware::class,
             'mediamtx'          => \App\Http\Middleware\VerifyMediaMtxSecret::class,
+            'bunny.webhook'     => \App\Http\Middleware\VerifyBunnyWebhookSecret::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: ['webhooks/bunny']);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

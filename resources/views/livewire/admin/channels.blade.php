@@ -52,6 +52,9 @@
 
             @scope('cell_actions', $channel)
                 <div class="flex gap-1 justify-end">
+                    <x-button icon="o-film" class="btn-ghost btn-xs"
+                        :tooltip="$channel->content_items_count . ' videos'"
+                        link="{{ route('admin.content.index', ['channel' => $channel->id]) }}" wire:navigate />
                     <x-button
                         :icon="$channel->is_active ? 'o-eye-slash' : 'o-eye'"
                         wire:click="confirmToggle('{{ $channel->id }}')"

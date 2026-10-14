@@ -1,6 +1,10 @@
-<div>
+<div @if($hasPending && ! $showPreview) wire:poll.10s @endif>
     <x-header title="Videos" :subtitle="$channel->name" separator progress-indicator>
         <x-slot:actions>
+            <x-button label="Upload Videos" icon="o-arrow-up-tray" class="btn-primary" responsive
+                link="{{ route('provider.content.upload', $channel) }}" wire:navigate />
+            <x-button label="Playlists" icon="o-queue-list"
+                link="{{ route('provider.playlists.index', $channel) }}" wire:navigate class="btn-ghost" responsive />
             <x-button label="Channel Settings" icon="o-cog-6-tooth"
                 link="{{ route('provider.channels.show', $channel) }}" wire:navigate class="btn-ghost" responsive />
             <x-button label="Dashboard" icon="o-home"
@@ -9,7 +13,7 @@
     </x-header>
 
     <x-alert icon="o-information-circle" class="alert-info mb-6">
-        Video upload is handled via your encoder. Files processed by FFmpeg appear here automatically once ready.
+        Uploaded videos are transcoded automatically and published once processing finishes.
     </x-alert>
 
     <x-card>
@@ -17,7 +21,7 @@
             <div class="text-center py-12 text-base-content/40">
                 <x-icon name="o-film" class="w-12 h-12 mx-auto mb-3" />
                 <p class="font-medium">No videos yet</p>
-                <p class="text-sm mt-1">Videos will appear here once processed.</p>
+                <p class="text-sm mt-1">Upload your first video to get started.</p>
             </div>
         @else
             <x-table :headers="$headers" :rows="$items" with-pagination>
@@ -44,6 +48,9 @@
                         $item->status === 'ready'      ? 'badge-success' :
                        ($item->status === 'processing' ? 'badge-warning' :
                        ($item->status === 'uploading'  ? 'badge-info'    : 'badge-error'))" />
+                    @if($item->status === 'processing')
+                        <span class="loading loading-spinner loading-xs ml-1 align-middle"></span>
+                    @endif
                 @endscope
 
                 @scope('cell_published_at', $item)
@@ -52,9 +59,9 @@
 
                 @scope('cell_actions', $item)
                     <div class="flex gap-1 justify-end">
-                        @if($item->hls_url)
+                        @if($item->status === 'ready' && $item->bunny_video_id)
                             <x-button icon="o-play" class="btn-ghost btn-xs" tooltip="Preview"
-                                tag="a" href="{{ $item->hls_url }}" target="_blank" />
+                                wire:click="preview('{{ $item->id }}')" spinner />
                         @endif
                         <x-button icon="o-trash" class="btn-ghost btn-xs text-error"
                             wire:click="confirmDelete('{{ $item->id }}')" tooltip="Delete" />
@@ -64,5 +71,6 @@
         @endif
     </x-card>
 
+    <x-video-preview-modal />
     <x-confirm-modal />
 </div>

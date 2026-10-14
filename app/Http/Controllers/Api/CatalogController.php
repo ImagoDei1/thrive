@@ -6,13 +6,19 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Channel;
+use App\Models\ContentItem;
+use App\Models\Playlist;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Services\VideoSourceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class CatalogController extends Controller
 {
+    public function __construct(private readonly VideoSourceService $videoSources) {}
+
     // ---------------------------------------------------------------------------
     // GET /api/categories
     // ---------------------------------------------------------------------------
@@ -70,17 +76,85 @@ class CatalogController extends Controller
 
         $hasActiveSubscription = $this->hasActiveSubscription($request->user());
 
+        $channel->load('provider');
+
         $contentItems = $channel->contentItems()
-            ->whereNotNull('published_at')
-            ->where('published_at', '<=', now())
+            ->playable()
             ->orderByDesc('published_at')
             ->get()
+            ->each(fn ($item) => $item->setRelation('channel', $channel))
             ->map(fn ($item) => $this->contentItemShape($item, $hasActiveSubscription));
 
+        // First playable item doubles as the cover when no thumbnail was set.
+        $playlists = $channel->playlists()
+            ->visible()
+            ->whereHas('contentItems', fn ($q) => $q->playable())
+            ->withCount(['contentItems as item_count' => fn ($q) => $q->playable()])
+            ->with(['contentItems' => fn ($q) => $q->playable()->limit(1)])
+            ->orderByDesc('published_at')
+            ->get()
+            ->map(fn (Playlist $playlist) => $this->playlistShape($playlist, $channel));
+
         return response()->json([
-            'channel'      => $this->channelShape($channel, $hasActiveSubscription),
+            'channel'       => $this->channelShape($channel, $hasActiveSubscription),
             'content_items' => $contentItems,
+            'playlists'     => $playlists,
         ]);
+    }
+
+    // ---------------------------------------------------------------------------
+    // GET /api/playlists/{id}
+    // ---------------------------------------------------------------------------
+    public function playlist(Request $request, string $id): JsonResponse
+    {
+        $playlist = ! Str::isUuid($id) ? null : Playlist::visible()
+            ->whereKey($id)
+            ->whereHas('channel', fn ($q) => $q->where('is_active', true))
+            ->with('channel.provider')
+            ->first();
+
+        if (! $playlist) {
+            return response()->json(['message' => 'Playlist not found'], 404);
+        }
+
+        $hasActiveSubscription = $this->hasActiveSubscription($request->user());
+        $channel = $playlist->channel;
+
+        $items = $playlist->contentItems()
+            ->playable()
+            ->get()
+            ->each(fn (ContentItem $item) => $item->setRelation('channel', $channel));
+
+        $playlist->setRelation('contentItems', $items->take(1));
+        $playlist->item_count = $items->count();
+
+        $response = [
+            'playlist' => $this->playlistShape($playlist, $channel),
+            'channel'  => $this->channelShape($channel, $hasActiveSubscription),
+        ];
+
+        if ($playlist->isSeries()) {
+            // Episode numbers are derived from order within each season, so
+            // removing or hiding a video never leaves gaps.
+            $response['seasons'] = $items
+                ->groupBy(fn (ContentItem $item) => $item->pivot->season_number ?? 1)
+                ->map(fn ($episodes, $season) => [
+                    'season_number' => (int) $season,
+                    'episodes'      => $episodes->values()->map(fn (ContentItem $item, int $i) => [
+                        ...$this->contentItemShape($item, $hasActiveSubscription),
+                        'season_number'  => (int) $season,
+                        'episode_number' => $i + 1,
+                    ]),
+                ])
+                ->values();
+        } else {
+            $response['items'] = $items->values()->map(fn (ContentItem $item, int $i) => [
+                ...$this->contentItemShape($item, $hasActiveSubscription),
+                'position' => $i + 1,
+            ]);
+        }
+
+        return response()->json($response);
     }
 
     // ---------------------------------------------------------------------------
@@ -117,17 +191,33 @@ class CatalogController extends Controller
         ];
     }
 
-    private function contentItemShape(\App\Models\ContentItem $item, bool $hasActiveSub): array
+    private function playlistShape(Playlist $playlist, Channel $channel): array
+    {
+        $cover = $playlist->contentItems->first()?->setRelation('channel', $channel);
+
+        return [
+            'id'            => $playlist->id,
+            'channel_id'    => $playlist->channel_id,
+            'title'         => $playlist->title,
+            'description'   => $playlist->description,
+            'kind'          => $playlist->kind,
+            'thumbnail_url' => $playlist->thumbnail_url ?? ($cover ? $this->videoSources->thumbnailUrl($cover) : null),
+            'item_count'    => (int) $playlist->item_count,
+            'published_at'  => $playlist->published_at?->toIso8601String(),
+        ];
+    }
+
+    private function contentItemShape(ContentItem $item, bool $hasActiveSub): array
     {
         return [
             'id'               => $item->id,
             'title'            => $item->title,
             'description'      => $item->description,
             'type'             => $item->type,
-            'thumbnail_url'    => $item->thumbnail_url,
+            'thumbnail_url'    => $this->videoSources->thumbnailUrl($item),
             'duration_seconds' => $item->duration_seconds,
             'published_at'     => $item->published_at?->toIso8601String(),
-            'hls_url'          => $hasActiveSub ? $item->hls_url : null,
+            'hls_url'          => $hasActiveSub ? $this->videoSources->hlsUrl($item) : null,
         ];
     }
 }

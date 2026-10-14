@@ -67,6 +67,7 @@
                 <x-menu-item title="My Channel" icon="o-tv" link="{{ route('provider.channels.show', $providerChannel) }}" wire:navigate />
                 <x-menu-item title="Stream Setup" icon="o-signal" link="{{ route('provider.channels.setup', $providerChannel) }}" wire:navigate />
                 <x-menu-item title="Videos" icon="o-film" link="{{ route('provider.content.index', $providerChannel) }}" wire:navigate />
+                <x-menu-item title="Playlists" icon="o-queue-list" link="{{ route('provider.playlists.index', $providerChannel) }}" wire:navigate />
             @else
                 <x-menu-item title="Create Channel" icon="o-plus-circle" link="{{ route('provider.channels.create') }}" wire:navigate />
             @endif
