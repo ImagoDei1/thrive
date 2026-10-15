@@ -15,7 +15,7 @@ class MediaMtxController extends Controller
     /**
      * Called by MediaMTX (authHTTPAddress) on every publish/read attempt.
      * "path" arrives with no leading slash, e.g. "live/{rtmp_key}". Only
-     * publishing is restricted to an approved provider's own channel;
+     * publishing is restricted to an approved provider's own verified channel;
      * reading (HLS/WebRTC playback) is left open since subscriber auth
      * happens at the Laravel/app layer, not at MediaMTX.
      */
@@ -27,7 +27,7 @@ class MediaMtxController extends Controller
 
         $channel = $this->channelForPath($request->string('path')->toString());
 
-        if (! $channel || ! $channel->provider?->is_approved) {
+        if (! $channel || ! $channel->isVerified() || ! $channel->provider?->is_approved) {
             return response()->noContent(401);
         }
 

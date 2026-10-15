@@ -44,6 +44,12 @@ that opens Bunny's hosted iframe player in a modal (`HasVideoPreview` trait +
 on, the embed carries `token = sha256_hex(bunny_token_key + video_guid + expires)`.
 Previews send no heartbeats, so they never count as watch time.
 
+## Library names
+A library is named after the provider's first channel slug, or the company-name slug
+before any channel exists. Creating a provider's first channel, or changing a channel
+slug, queues `SyncBunnyLibraryNameJob`. Run `php artisan bunny:sync-library-names` to
+rename every existing library.
+
 ## Deletion and maintenance
 - Deleting a content item soft-deletes the row and queues `DeleteBunnyVideoJob`, which
   removes the video from Bunny unless the row was restored first.
@@ -53,3 +59,9 @@ Previews send no heartbeats, so they never count as watch time.
 
 ## Not yet done
 - Live streaming via Bunny (`channels.bunny_stream_id` is reserved).
+
+## Running tests on this server
+`php artisan test` is safe here. `phpunit.xml` points tests at the `thrive_test` database,
+bypasses production's config/route caches, blanks the Bunny API key, and
+`tests/TestCase.php` blocks any un-faked HTTP request and refuses to run outside
+`APP_ENV=testing`.

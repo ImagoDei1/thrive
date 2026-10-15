@@ -51,6 +51,10 @@ class DatabaseSeeder extends Seeder
                 'setup_fee_amount' => 50000.00,
                 'is_approved'      => true,
                 'onboarded_at'     => now(),
+                'kyc_status'       => 'approved',
+                'kyc_submitted_at' => now()->subDays(3),
+                'kyc_reviewed_at'  => now()->subDays(2),
+                'kyc_reviewed_by'  => $admin->id,
             ]);
 
             Channel::create([
@@ -63,6 +67,8 @@ class DatabaseSeeder extends Seeder
                 'rtmp_key'         => Str::random(32),
                 'rtmp_ingest_url'  => 'rtmp://stream.Thrive.test/live',
                 'hls_playback_url' => 'https://stream.Thrive.test/hls/' . Str::slug($data['company']) . '.m3u8',
+                'verified_at'      => now()->subDays(2),
+                'verified_by'      => $admin->id,
             ]);
         }
 

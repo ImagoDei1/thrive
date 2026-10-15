@@ -26,14 +26,18 @@ class BunnyStreamClient
             ->throw()
             ->json();
 
-        $this->account()
-            ->post("/videolibrary/{$library['Id']}", array_filter([
-                'WebhookUrl'                => $webhookUrl,
-                'EnableTokenAuthentication' => $tokenAuth,
-            ], fn ($v) => $v !== null))
-            ->throw();
+        $this->updateLibrary((string) $library['Id'], array_filter([
+            'WebhookUrl'                => $webhookUrl,
+            'EnableTokenAuthentication' => $tokenAuth,
+        ], fn ($v) => $v !== null));
 
         return $library;
+    }
+
+    /** @param  array<string, mixed>  $settings  e.g. ['Name' => '...'] */
+    public function updateLibrary(string $libraryId, array $settings): void
+    {
+        $this->account()->post("/videolibrary/{$libraryId}", $settings)->throw();
     }
 
     /** @return array<string, mixed> */
@@ -75,6 +79,12 @@ class BunnyStreamClient
     }
 
     // ---------------------------------------------------------------------------
+
+    /** False when BUNNY_API_KEY is unset, e.g. in tests or a fresh install. */
+    public function isConfigured(): bool
+    {
+        return (string) config('services.bunny.api_key') !== '';
+    }
 
     private function account(): PendingRequest
     {

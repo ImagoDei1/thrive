@@ -32,6 +32,7 @@ class ContentItem extends Model
         'resolution',
         'qualities',
         'published_at',
+        'unpublished_at',
         'bunny_library_id',
         'bunny_video_id',
     ];
@@ -51,7 +52,14 @@ class ContentItem extends Model
         return [
             'qualities'    => 'array',
             'published_at' => 'datetime',
+            'unpublished_at' => 'datetime',
         ];
+    }
+
+    /** Hidden by the provider; stays hidden until republished, even if Bunny re-syncs it. */
+    public function isUnpublished(): bool
+    {
+        return $this->unpublished_at !== null;
     }
 
     public function channel(): BelongsTo
@@ -67,10 +75,11 @@ class ContentItem extends Model
             ->withTimestamps();
     }
 
-    /** Ready and published: what subscribers may see in the catalog. */
+    /** Ready, published and not unpublished: what subscribers may see in the catalog. */
     public function scopePlayable(Builder $query): Builder
     {
         return $query->where('content_items.status', 'ready')
+            ->whereNull('content_items.unpublished_at')
             ->whereNotNull('content_items.published_at')
             ->where('content_items.published_at', '<=', now());
     }

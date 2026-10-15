@@ -63,7 +63,7 @@ class ChannelCreate extends Component
             'hls_playback_url' => route('hls.playback', ['slug' => $channel->slug, 'file' => 'index.m3u8']),
         ]);
 
-        $this->success('Channel created. Copy your RTMP key to start streaming.');
+        $this->success('Channel created. Stream setup unlocks once our team verifies it.');
 
         $this->redirect(route('provider.channels.show', $channel), navigate: true);
     }

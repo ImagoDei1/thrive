@@ -14,6 +14,7 @@
 
     <x-alert icon="o-information-circle" class="alert-info mb-6">
         Uploaded videos are transcoded automatically and published once processing finishes.
+        Unpublish a video to hide it from subscribers without deleting it.
     </x-alert>
 
     <x-card>
@@ -26,10 +27,10 @@
         @else
             <x-table :headers="$headers" :rows="$items" with-pagination>
                 @scope('cell_title', $item)
-                    <div>
-                        <p class="font-semibold">{{ $item->title }}</p>
+                    <div class="max-w-xs xl:max-w-md" title="{{ $item->title }}">
+                        <p class="font-semibold line-clamp-2 break-words">{{ $item->title }}</p>
                         @if($item->description)
-                            <p class="text-xs text-base-content/40 truncate max-w-xs">{{ $item->description }}</p>
+                            <p class="text-xs text-base-content/40 truncate">{{ $item->description }}</p>
                         @endif
                     </div>
                 @endscope
@@ -40,7 +41,7 @@
 
                 @scope('cell_duration_seconds', $item)
                     @php $h = intdiv($item->duration_seconds, 3600); $m = intdiv($item->duration_seconds % 3600, 60); $s = $item->duration_seconds % 60; @endphp
-                    <span class="font-mono text-sm">{{ $h > 0 ? "{$h}h " : '' }}{{ $m }}m {{ $s }}s</span>
+                    <span class="font-mono text-sm whitespace-nowrap">{{ $h > 0 ? "{$h}h " : '' }}{{ $m }}m {{ $s }}s</span>
                 @endscope
 
                 @scope('cell_status', $item)
@@ -54,14 +55,25 @@
                 @endscope
 
                 @scope('cell_published_at', $item)
-                    {{ $item->published_at?->format('d M Y') ?? '—' }}
+                    @if($item->isUnpublished())
+                        <x-badge value="Unpublished" class="badge-ghost" />
+                    @else
+                        <span class="whitespace-nowrap">{{ $item->published_at?->format('d M Y') ?? '—' }}</span>
+                    @endif
                 @endscope
 
                 @scope('cell_actions', $item)
-                    <div class="flex gap-1 justify-end">
+                    <div class="flex gap-1 justify-end whitespace-nowrap">
                         @if($item->status === 'ready' && $item->bunny_video_id)
                             <x-button icon="o-play" class="btn-ghost btn-xs" tooltip="Preview"
                                 wire:click="preview('{{ $item->id }}')" spinner />
+                        @endif
+                        @if($item->isUnpublished())
+                            <x-button icon="o-eye" class="btn-ghost btn-xs" tooltip="Republish"
+                                wire:click="republish('{{ $item->id }}')" spinner />
+                        @else
+                            <x-button icon="o-eye-slash" class="btn-ghost btn-xs" tooltip="Unpublish"
+                                wire:click="confirmUnpublish('{{ $item->id }}')" />
                         @endif
                         <x-button icon="o-trash" class="btn-ghost btn-xs text-error"
                             wire:click="confirmDelete('{{ $item->id }}')" tooltip="Delete" />

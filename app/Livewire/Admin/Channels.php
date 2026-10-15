@@ -6,6 +6,7 @@ namespace App\Livewire\Admin;
 
 use App\Livewire\Concerns\HasConfirmModal;
 use App\Models\Channel;
+use App\Services\ProviderVerificationService;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -24,6 +25,7 @@ class Channels extends Component
         ['key' => 'name',      'label' => 'Channel'],
         ['key' => 'provider',  'label' => 'Provider'],
         ['key' => 'category',  'label' => 'Category'],
+        ['key' => 'verified',  'label' => 'Verification'],
         ['key' => 'is_live',   'label' => 'Live'],
         ['key' => 'is_active', 'label' => 'Status'],
         ['key' => 'actions',   'label' => ''],
@@ -52,6 +54,41 @@ class Channels extends Component
         $channel->update(['is_active' => ! $channel->is_active]);
         $status = $channel->is_active ? 'activated' : 'deactivated';
         $this->success("{$channel->name} {$status}.");
+    }
+
+    public function confirmVerification(string $id): void
+    {
+        $channel = Channel::with('provider')->findOrFail($id);
+
+        if ($channel->isVerified()) {
+            $this->askConfirm('toggleVerification', "Remove verification from {$channel->name}?",
+                'The provider will lose access to stream setup and live publishing will be refused.',
+                $id, 'Unverify', 'btn-error');
+            return;
+        }
+
+        if ($channel->provider->kyc_status !== 'approved') {
+            $this->error("{$channel->provider->company_name} must pass KYC before this channel can be verified.");
+            return;
+        }
+
+        $this->askConfirm('toggleVerification', "Verify {$channel->name}?",
+            'The provider will be able to view stream credentials and go live.',
+            $id, 'Verify', 'btn-success');
+    }
+
+    public function toggleVerification(string $id): void
+    {
+        $channel = Channel::with('provider')->findOrFail($id);
+        $verification = app(ProviderVerificationService::class);
+
+        if ($channel->isVerified()) {
+            $verification->unverifyChannel($channel);
+            $this->warning("{$channel->name} is no longer verified.");
+        } elseif ($channel->provider->kyc_status === 'approved') {
+            $verification->verifyChannel($channel, auth()->user());
+            $this->success("{$channel->name} verified.");
+        }
     }
 
     public function render()

@@ -11,7 +11,7 @@
     <x-card>
         <x-table :headers="$headers" :rows="$items" with-pagination>
             @scope('cell_title', $item)
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 max-w-xs xl:max-w-md" title="{{ $item->title }}">
                     @if($thumb = app(\App\Services\VideoSourceService::class)->thumbnailUrl($item))
                         <img src="{{ $thumb }}" alt="" class="w-16 h-9 rounded object-cover shrink-0 bg-base-200" loading="lazy" />
                     @else
@@ -19,10 +19,10 @@
                             <x-icon name="o-film" class="w-4 h-4 text-base-content/30" />
                         </div>
                     @endif
-                    <div>
-                        <p class="font-semibold">{{ $item->title }}</p>
+                    <div class="min-w-0">
+                        <p class="font-semibold line-clamp-2 break-words">{{ $item->title }}</p>
                         @if($item->description)
-                            <p class="text-xs text-base-content/40 truncate max-w-xs">{{ $item->description }}</p>
+                            <p class="text-xs text-base-content/40 truncate">{{ $item->description }}</p>
                         @endif
                     </div>
                 </div>
@@ -41,10 +41,11 @@
 
             @scope('cell_duration_seconds', $item)
                 @php $h = intdiv((int) $item->duration_seconds, 3600); $m = intdiv((int) $item->duration_seconds % 3600, 60); $s = (int) $item->duration_seconds % 60; @endphp
-                <span class="font-mono text-sm">{{ $h > 0 ? "{$h}h " : '' }}{{ $m }}m {{ $s }}s</span>
+                <span class="font-mono text-sm whitespace-nowrap">{{ $h > 0 ? "{$h}h " : '' }}{{ $m }}m {{ $s }}s</span>
             @endscope
 
             @scope('cell_status', $item)
+                <div class="whitespace-nowrap">
                 <x-badge :value="ucfirst($item->status)" :class="
                     $item->status === 'ready'      ? 'badge-success' :
                    ($item->status === 'processing' ? 'badge-warning' :
@@ -52,10 +53,14 @@
                 @if($item->status === 'processing')
                     <span class="loading loading-spinner loading-xs ml-1 align-middle"></span>
                 @endif
+                @if($item->isUnpublished())
+                    <x-badge value="Unpublished" class="badge-ghost ml-1" />
+                @endif
+                </div>
             @endscope
 
             @scope('cell_created_at', $item)
-                {{ $item->created_at->format('d M Y') }}
+                <span class="whitespace-nowrap">{{ $item->created_at->format('d M Y') }}</span>
             @endscope
 
             @scope('cell_actions', $item)

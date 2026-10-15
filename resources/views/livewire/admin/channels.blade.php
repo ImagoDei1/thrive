@@ -37,6 +37,14 @@
                 <x-badge :value="ucfirst($channel->category ?? '—')" class="badge-ghost" />
             @endscope
 
+            @scope('cell_verified', $channel)
+                @if($channel->isVerified())
+                    <x-badge value="Verified" class="badge-info" />
+                @else
+                    <x-badge value="Unverified" class="badge-ghost" />
+                @endif
+            @endscope
+
             @scope('cell_is_live', $channel)
                 @if($channel->is_live)
                     <x-badge value="Live" class="badge-error animate-pulse" />
@@ -55,6 +63,11 @@
                     <x-button icon="o-film" class="btn-ghost btn-xs"
                         :tooltip="$channel->content_items_count . ' videos'"
                         link="{{ route('admin.content.index', ['channel' => $channel->id]) }}" wire:navigate />
+                    <x-button
+                        :icon="$channel->isVerified() ? 'o-shield-exclamation' : 'o-shield-check'"
+                        wire:click="confirmVerification('{{ $channel->id }}')"
+                        class="btn-ghost btn-xs"
+                        :tooltip="$channel->isVerified() ? 'Remove verification' : 'Verify'" />
                     <x-button
                         :icon="$channel->is_active ? 'o-eye-slash' : 'o-eye'"
                         wire:click="confirmToggle('{{ $channel->id }}')"

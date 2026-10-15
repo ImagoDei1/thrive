@@ -31,6 +31,10 @@
                 MWK {{ number_format($period->provider_pool, 2) }}
             @endscope
 
+            @scope('cell_setup_fees_mwk', $period)
+                {{ $period->setup_fees_mwk > 0 ? 'MWK '.number_format($period->setup_fees_mwk, 2) : '—' }}
+            @endscope
+
             @scope('cell_status', $period)
                 <x-badge :value="ucfirst($period->status)" :class="
                     $period->status === 'open'        ? 'badge-info'    :

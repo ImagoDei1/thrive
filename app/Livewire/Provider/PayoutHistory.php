@@ -19,7 +19,9 @@ class PayoutHistory extends Component
         ['key' => 'period',        'label' => 'Period'],
         ['key' => 'watch_hours',   'label' => 'Watch Hours'],
         ['key' => 'share_percent', 'label' => 'Share %'],
-        ['key' => 'amount_mwk',   'label' => 'Amount (MWK)'],
+        ['key' => 'gross_amount_mwk', 'label' => 'Earned (MWK)'],
+        ['key' => 'setup_fee_mwk', 'label' => 'Setup Fee'],
+        ['key' => 'amount_mwk',   'label' => 'Payout (MWK)'],
         ['key' => 'status',        'label' => 'Status'],
         ['key' => 'paid_at',       'label' => 'Paid On'],
     ];

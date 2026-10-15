@@ -1,6 +1,8 @@
 <div>
     <x-header title="Payout History" subtitle="Revenue earned per billing period" separator progress-indicator />
 
+    @include('livewire.provider.partials.setup-fee-notice', ['provider' => auth()->user()->providerProfile])
+
     {{-- Current month watch breakdown --}}
     @if($watchSummary->isNotEmpty())
         <x-card title="{{ now()->format('F Y') }} — Watch Time" separator class="mb-6">
@@ -31,6 +33,19 @@
 
                 @scope('cell_share_percent', $payout)
                     {{ number_format($payout->share_percent * 100, 4) }}%
+                @endscope
+
+                @scope('cell_gross_amount_mwk', $payout)
+                    {{ number_format($payout->gross_amount_mwk, 2) }}
+                @endscope
+
+                @scope('cell_setup_fee_mwk', $payout)
+                    @if($payout->setup_fee_mwk > 0)
+                        <span class="text-warning">−{{ number_format($payout->setup_fee_mwk, 2) }}</span>
+                        <span class="text-xs text-base-content/40">({{ rtrim(rtrim(number_format((float) $payout->setup_fee_percentage, 2), '0'), '.') }} pts)</span>
+                    @else
+                        <span class="text-base-content/30">—</span>
+                    @endif
                 @endscope
 
                 @scope('cell_amount_mwk', $payout)

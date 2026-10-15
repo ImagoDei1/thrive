@@ -45,12 +45,42 @@ class ContentItems extends Component
         $this->openPreview($item, $this->channel->name);
     }
 
+    public function confirmUnpublish(string $id): void
+    {
+        $item = $this->ownedItem($id);
+        $this->askConfirm('unpublish',
+            "Unpublish \"{$item->title}\"?",
+            'Subscribers will no longer see it in the app or in playlists. The video is kept and you can republish it any time.',
+            $id, 'Unpublish', 'btn-warning');
+    }
+
+    public function unpublish(string $id): void
+    {
+        $item = $this->ownedItem($id);
+        $item->update(['unpublished_at' => now()]);
+        $this->success("\"{$item->title}\" unpublished.");
+    }
+
+    public function republish(string $id): void
+    {
+        $item = $this->ownedItem($id);
+        $item->update(['unpublished_at' => null]);
+        $this->success($item->status === 'ready'
+            ? "\"{$item->title}\" is visible to subscribers again."
+            : "\"{$item->title}\" will be published once processing finishes.");
+    }
+
+    private function ownedItem(string $id): ContentItem
+    {
+        return ContentItem::where('channel_id', $this->channel->id)->findOrFail($id);
+    }
+
     public function confirmDelete(string $id): void
     {
-        $item = ContentItem::findOrFail($id);
+        $item = $this->ownedItem($id);
         $this->askConfirm('delete',
             "Delete \"{$item->title}\"?",
-            'This action cannot be undone.',
+            'The video is permanently removed from storage and cannot be recovered. To hide it from subscribers but keep it, unpublish it instead.',
             $id, 'Delete', 'btn-error');
     }
 

@@ -62,10 +62,27 @@
 
             <x-menu-separator />
 
-            @php $providerChannel = auth()->user()->providerProfile?->channels()->first(); @endphp
-            @if($providerChannel)
+            @php
+                $providerProfile = auth()->user()->providerProfile;
+                $providerChannel = $providerProfile?->channels()->first();
+            @endphp
+            @if(! $providerProfile?->is_approved)
+                @php [$kycLabel, $kycClass] = match($providerProfile?->kyc_status) {
+                    'submitted' => ['In review', 'badge-warning'],
+                    'rejected'  => ['Action needed', 'badge-error'],
+                    'approved'  => ['Suspended', 'badge-error'],
+                    default     => ['To do', 'badge-primary'],
+                }; @endphp
+                <x-menu-item title="Verification" icon="o-shield-check" link="{{ route('provider.onboarding') }}" wire:navigate
+                    :badge="$kycLabel" :badge-classes="$kycClass" />
+                <x-menu-item title="My Channel" icon="o-lock-closed" disabled />
+                <x-menu-item title="Videos" icon="o-lock-closed" disabled />
+                <x-menu-item title="Playlists" icon="o-lock-closed" disabled />
+            @elseif($providerChannel)
                 <x-menu-item title="My Channel" icon="o-tv" link="{{ route('provider.channels.show', $providerChannel) }}" wire:navigate />
-                <x-menu-item title="Stream Setup" icon="o-signal" link="{{ route('provider.channels.setup', $providerChannel) }}" wire:navigate />
+                @if($providerChannel->isVerified())
+                    <x-menu-item title="Stream Setup" icon="o-signal" link="{{ route('provider.channels.setup', $providerChannel) }}" wire:navigate />
+                @endif
                 <x-menu-item title="Videos" icon="o-film" link="{{ route('provider.content.index', $providerChannel) }}" wire:navigate />
                 <x-menu-item title="Playlists" icon="o-queue-list" link="{{ route('provider.playlists.index', $providerChannel) }}" wire:navigate />
             @else

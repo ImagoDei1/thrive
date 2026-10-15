@@ -42,6 +42,7 @@ class BillingPeriods extends Component
         ['key' => 'total_subscribers', 'label' => 'Subscribers'],
         ['key' => 'total_revenue',     'label' => 'Revenue (MWK)'],
         ['key' => 'provider_pool',     'label' => 'Provider Pool'],
+        ['key' => 'setup_fees_mwk',    'label' => 'Setup Fees'],
         ['key' => 'status',            'label' => 'Status'],
         ['key' => 'actions',           'label' => ''],
     ];

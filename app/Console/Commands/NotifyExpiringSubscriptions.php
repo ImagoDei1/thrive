@@ -22,12 +22,26 @@ class NotifyExpiringSubscriptions extends Command
         foreach ($notifyAt as $days) {
             $targetDate = now()->addDays($days)->toDateString();
 
+            // profile.expires_at is the end of the subscriber's latest (stacked) access window.
             $profiles = SubscriberProfile::with('user')
                 ->where('subscription_status', 'active')
                 ->whereDate('expires_at', $targetDate)
                 ->get();
 
             foreach ($profiles as $profile) {
+                $plan = $profile->subscriptions()
+                    ->with('plan')
+                    ->where('status', 'active')
+                    ->latest('ends_at')
+                    ->first()
+                    ?->plan;
+
+                // A reminder only makes sense when it falls inside the plan:
+                // no "7 days left" for a 1-week pass, none at all for a 24h pass.
+                if (! $plan || $plan->duration_days <= $days) {
+                    continue;
+                }
+
                 $profile->user->notify(new SubscriptionExpiringSoon($days));
                 $count++;
             }

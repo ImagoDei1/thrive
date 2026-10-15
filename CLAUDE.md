@@ -55,12 +55,14 @@ routes/web.php         # admin.* and provider.* route groups
 
 1. **Revenue formula:** `provider_share = (provider_watch_seconds / total_watch_seconds) * provider_pool`
 2. **Zero watch time = zero payout.** Never add minimum guarantees.
-3. **Platform always takes 20%, providers pool 80%.** Stored in `billing_periods.platform_percentage`.
+3. **Platform always takes 20%, providers pool 80%.** Stored in `billing_periods.platform_percentage`. The only exception is the setup-fee deduction in rule 10.
 4. **Watch time credits `actual_elapsed_seconds` only — never `position_delta`.** Position delta is for anomaly detection only.
 5. **Heartbeats only fire when `isPlaying && !isBuffering`** (Flutter client rule).
 6. **RTMP keys are unique per channel** — regenerating disconnects the live stream.
 7. **Providers must be `is_approved = true` before their channels are visible.**
 8. **`billing_period` is stored as `"YYYY-MM"` string** — not a date column.
+9. **Providers pass KYC before approval; channels must be verified (`channels.verified_at`) before stream credentials are shown or RTMP publish is allowed.** Approval/verification goes through `ProviderVerificationService`.
+10. **No upfront provider setup fees.** Instead a provider's share is reduced by `provider_profiles.setup_fee_percentage` points (default 10) for billing periods `setup_fee_starts_period`..`setup_fee_ends_period` (max 6 months, set on KYC approval via `ProviderSetupFeeService`). Payout = gross × (provider% − fee%) / provider%; the withheld amount stays with the platform (`provider_payouts.setup_fee_mwk`, `billing_periods.setup_fees_mwk`). Defaults in `config/revenue.php`.
 
 ## Database Conventions
 - All PKs: `uuid` using `gen_random_uuid()`
@@ -104,7 +106,6 @@ Flutter heartbeat (every 30s, only when playing)
 - Malawi-native payment gateway
 - Supports MTN Mobile Money + Airtel Money
 - Used for subscriber monthly billing only
-- Provider setup fees also go through PayChangu
 - Webhook endpoint must verify `paychangu_tx_id` uniqueness before activating subscription
 
 ## Testing

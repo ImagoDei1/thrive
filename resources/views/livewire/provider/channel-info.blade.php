@@ -1,7 +1,9 @@
 <div wire:poll.10s>
     <x-header title="{{ $channel->name }}" subtitle="Channel Information" separator progress-indicator>
         <x-slot:actions>
-            <x-button label="Stream Setup" icon="o-signal" link="{{ route('provider.channels.setup', $channel) }}" wire:navigate class="btn-primary" />
+            @if($channel->isVerified())
+                <x-button label="Stream Setup" icon="o-signal" link="{{ route('provider.channels.setup', $channel) }}" wire:navigate class="btn-primary" />
+            @endif
             <x-button label="Dashboard" icon="o-home" link="{{ route('provider.dashboard') }}" wire:navigate class="btn-ghost" />
         </x-slot:actions>
     </x-header>
@@ -92,6 +94,15 @@
             </x-card>
 
             <x-card title="Status" separator>
+                <x-list-item :item="['k' => 'Verification']" value="k" no-separator no-hover>
+                    <x-slot:actions>
+                        @if($channel->isVerified())
+                            <x-badge value="Verified" class="badge-info" />
+                        @else
+                            <x-badge value="Awaiting verification" class="badge-warning" />
+                        @endif
+                    </x-slot:actions>
+                </x-list-item>
                 <x-list-item :item="['k' => 'Visibility']" value="k" no-separator no-hover>
                     <x-slot:actions>
                         <x-badge :value="$channel->is_active ? 'Active' : 'Inactive'"
@@ -111,8 +122,10 @@
 
             <x-card title="Quick Links" separator>
                 <div class="flex flex-col gap-2">
-                    <x-button label="Stream Setup" icon="o-signal"
-                        link="{{ route('provider.channels.setup', $channel) }}" wire:navigate class="btn-outline btn-sm justify-start" />
+                    @if($channel->isVerified())
+                        <x-button label="Stream Setup" icon="o-signal"
+                            link="{{ route('provider.channels.setup', $channel) }}" wire:navigate class="btn-outline btn-sm justify-start" />
+                    @endif
                     <x-button label="Videos" icon="o-film"
                         link="{{ route('provider.content.index', $channel) }}" wire:navigate class="btn-outline btn-sm justify-start" />
                     <x-button label="Payout History" icon="o-banknotes"

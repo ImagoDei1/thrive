@@ -12,8 +12,8 @@ Schedule::command('watchtime:rollup-monthly')->hourly();
 // Close periods past cut-off, trigger payouts on payout_date — runs daily at 06:00
 Schedule::command('payouts:process-scheduled')->dailyAt('06:00');
 
-// Suspend subscribers whose 3-day grace period has expired — runs daily at 07:00
-Schedule::command('subscriptions:expire')->dailyAt('07:00');
+// Expire subscriptions past ends_at + plan grace — hourly so 24h passes lapse on time
+Schedule::command('subscriptions:expire')->hourly();
 
 // Email subscribers expiring in 7 or 3 days — runs daily at 08:00
 Schedule::command('subscriptions:notify-expiring')->dailyAt('08:00');

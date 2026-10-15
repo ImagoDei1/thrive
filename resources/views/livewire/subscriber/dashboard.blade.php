@@ -11,7 +11,7 @@
     {{-- Expiry warning --}}
     @if($expiryWarning)
         <x-alert icon="o-exclamation-triangle" class="alert-warning mb-6">
-            Your subscription expires in <strong>{{ $daysRemaining }} {{ Str::plural('day', $daysRemaining) }}</strong>.
+            Your subscription expires <strong>{{ $profile->expires_at->diffForHumans() }}</strong>.
             Please renew through the Thrive mobile app to continue watching.
         </x-alert>
     @endif
@@ -27,7 +27,7 @@
                     @if($activeSubscription)
                         <p class="text-2xl font-bold mt-1">{{ $activeSubscription->plan->name }}</p>
                         <p class="text-sm text-base-content/50 mt-0.5">
-                            MWK {{ number_format($activeSubscription->plan->price_mwk, 2) }} / month
+                            MWK {{ number_format($activeSubscription->plan->price_mwk, 2) }} / {{ $activeSubscription->plan->durationLabel() }}
                         </p>
                     @else
                         <p class="text-2xl font-bold mt-1 text-base-content/40">No active plan</p>
@@ -56,9 +56,9 @@
                             {{ $profile->subscription_status === 'expired' ? 'Expired on' : 'Renews / expires on' }}
                         </span>
                         <span class="font-semibold {{ $daysRemaining !== null && $daysRemaining <= 3 ? 'text-error' : '' }}">
-                            {{ $profile->expires_at->format('d M Y') }}
+                            {{ $profile->expires_at->format('d M Y, H:i') }}
                             @if($daysRemaining !== null && $daysRemaining >= 0)
-                                <span class="text-base-content/40 font-normal">({{ $daysRemaining }}d left)</span>
+                                <span class="text-base-content/40 font-normal">({{ $profile->expires_at->diffForHumans(['parts' => 1, 'syntax' => \Carbon\CarbonInterface::DIFF_ABSOLUTE]) }} left)</span>
                             @endif
                         </span>
                     </div>

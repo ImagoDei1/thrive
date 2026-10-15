@@ -41,7 +41,8 @@ new class extends Component {
 
         $user->fill($validated);
 
-        if ($user->isDirty('email')) {
+        // users has no email_verified_at column; only reset it for models that verify email.
+        if ($user->isDirty('email') && $user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail) {
             $user->email_verified_at = null;
         }
 
@@ -58,7 +59,7 @@ new class extends Component {
         $user = Auth::user();
 
         if ($user->hasVerifiedEmail()) {
-            $this->redirectIntended(default: route('dashboard', absolute: false));
+            $this->redirectIntended(default: route('home', absolute: false));
 
             return;
         }

@@ -276,7 +276,10 @@ it('resets seasons when a playlist changes kind', function () {
 
 it('adds new uploads to the chosen playlists', function () {
     config(['services.bunny.api_key' => 'account-key']);
-    Http::fake(['video.bunnycdn.com/library/*/videos' => Http::response(['guid' => (string) Str::uuid()])]);
+    Http::fake([
+        'video.bunnycdn.com/library/*/videos' => Http::response(['guid' => (string) Str::uuid()]),
+        'api.bunny.net/*'                     => Http::response([], 200), // library rename on channel create
+    ]);
 
     $provider = playlistProvider();
     $channel = playlistChannel($provider);

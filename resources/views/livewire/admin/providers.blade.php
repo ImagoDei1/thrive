@@ -34,17 +34,32 @@
                     :class="$provider->is_approved ? 'badge-success' : 'badge-warning'" />
             @endscope
 
-            @scope('cell_setup_fee_status', $provider)
-                <x-badge :value="ucfirst($provider->setup_fee_status)"
-                    :class="$provider->setup_fee_status === 'paid' ? 'badge-success' : 'badge-ghost'" />
+            @scope('cell_kyc_status', $provider)
+                @php [$label, $class] = match($provider->kyc_status) {
+                    'approved'  => ['Approved', 'badge-success'],
+                    'submitted' => ['Awaiting review', 'badge-warning'],
+                    'rejected'  => ['Rejected', 'badge-error'],
+                    default     => ['Not started', 'badge-ghost'],
+                }; @endphp
+                <x-badge :value="$label" :class="$class" />
+            @endscope
+
+            @scope('cell_setup_fee', $provider)
+                @php $feeStatus = $provider->setupFeeStatus(); @endphp
+                @if($feeStatus === 'none')
+                    <span class="text-base-content/30">—</span>
+                @else
+                    <x-badge :value="rtrim(rtrim(number_format((float) $provider->setup_fee_percentage, 2), '0'), '.').'% until '.$provider->setup_fee_ends_period"
+                        :class="match($feeStatus) { 'active' => 'badge-warning', 'upcoming' => 'badge-info', default => 'badge-success' }" />
+                @endif
             @endscope
 
             @scope('cell_actions', $provider)
                 <div class="flex gap-1 justify-end">
                     <x-button icon="o-eye" link="{{ route('admin.providers.show', $provider) }}" class="btn-ghost btn-xs" tooltip="View" wire:navigate />
-                    @if(! $provider->is_approved)
-                        <x-button icon="o-check" wire:click="confirmApprove('{{ $provider->id }}')" class="btn-success btn-xs" tooltip="Approve" />
-                    @else
+                    @if($provider->kycAwaitingReview())
+                        <x-button icon="o-shield-check" link="{{ route('admin.providers.show', $provider) }}" class="btn-warning btn-xs" tooltip="Review KYC" wire:navigate />
+                    @elseif($provider->is_approved)
                         <x-button icon="o-x-mark" wire:click="confirmReject('{{ $provider->id }}')" class="btn-error btn-outline btn-xs" tooltip="Revoke" />
                     @endif
                 </div>
@@ -58,6 +73,7 @@
                 ['id' => '',         'name' => 'All'],
                 ['id' => 'approved', 'name' => 'Approved'],
                 ['id' => 'pending',  'name' => 'Pending'],
+                ['id' => 'kyc_review', 'name' => 'KYC awaiting review'],
             ]" option-value="id" option-label="name" placeholder="All" placeholder-value="" inline />
         </div>
         <x-slot:actions>

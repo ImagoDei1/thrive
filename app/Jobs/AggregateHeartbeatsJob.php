@@ -25,10 +25,14 @@ class AggregateHeartbeatsJob implements ShouldQueue
         // Drain up to 500 heartbeats per run
         while (count($heartbeats) < 500) {
             $raw = Redis::rpop('heartbeats:queue');
-            if ($raw === null) {
+            // phpredis returns false (predis returns null) when the list is empty.
+            if (! is_string($raw)) {
                 break;
             }
-            $heartbeats[] = json_decode($raw, true);
+            $hb = json_decode($raw, true);
+            if (is_array($hb)) {
+                $heartbeats[] = $hb;
+            }
         }
 
         if (empty($heartbeats)) {

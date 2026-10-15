@@ -39,9 +39,7 @@ new #[Layout('components.layouts.auth.thrive')] class extends Component {
         $user = Auth::user();
         $default = match($user->role) {
             'admin'    => route('admin.dashboard', absolute: false),
-            'provider' => $user->providerProfile?->is_approved
-                            ? route('provider.dashboard', absolute: false)
-                            : route('provider.onboarding', absolute: false),
+            'provider' => route('provider.dashboard', absolute: false),
             default    => route('home', absolute: false),
         };
 

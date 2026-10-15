@@ -21,6 +21,7 @@ class BillingPeriod extends Model
         'total_revenue',
         'platform_share',
         'provider_pool',
+        'setup_fees_mwk',
         'platform_percentage',
         'status',
         'closed_at',

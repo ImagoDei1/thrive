@@ -42,6 +42,9 @@
                                         @if($item->status !== 'ready')
                                             · <span class="text-warning">{{ ucfirst($item->status) }}</span>
                                         @endif
+                                        @if($item->isUnpublished())
+                                            · <span class="text-base-content/50">Unpublished</span>
+                                        @endif
                                     </p>
                                 </div>
 

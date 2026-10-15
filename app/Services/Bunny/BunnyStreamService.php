@@ -10,6 +10,7 @@ use App\Models\ProviderProfile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class BunnyStreamService
 {
@@ -35,11 +36,7 @@ class BunnyStreamService
     private function createLibraryFor(ProviderProfile $provider): ProviderProfile
     {
         $webhookUrl = route('webhooks.bunny', ['secret' => config('services.bunny.webhook_secret')]);
-        $name = config('app.env') === 'production'
-            ? "thrive-{$provider->id}"
-            : 'thrive-' . config('app.env') . "-{$provider->id}";
-
-        $library = $this->client->createLibrary($name, $webhookUrl, (bool) config('services.bunny.token_auth'));
+        $library = $this->client->createLibrary($this->libraryName($provider), $webhookUrl, (bool) config('services.bunny.token_auth'));
         $pullZone = $this->client->getPullZone($library['PullZoneId']);
 
         $hostname = collect($pullZone['Hostnames'] ?? [])
@@ -55,6 +52,32 @@ class BunnyStreamService
         ]);
 
         return $provider;
+    }
+
+    /**
+     * Library name shown in the Bunny dashboard: the slug of the provider's
+     * first channel, or the company name slug before any channel exists.
+     */
+    public function libraryName(ProviderProfile $provider): string
+    {
+        $name = $provider->channels()->oldest()->value('slug')
+            ?: Str::slug((string) $provider->company_name)
+            ?: "provider-{$provider->id}";
+
+        return Str::limit($name, 100, '');
+    }
+
+    /** Rename the provider's Bunny library to match libraryName(). */
+    public function syncLibraryName(ProviderProfile $provider): ?string
+    {
+        if (! $provider->hasBunnyLibrary()) {
+            return null;
+        }
+
+        $name = $this->libraryName($provider);
+        $this->client->updateLibrary($provider->bunny_library_id, ['Name' => $name]);
+
+        return $name;
     }
 
     /**

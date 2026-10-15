@@ -1,4 +1,5 @@
 <div wire:poll.5s>
+    @if($channel->isVerified())
     <x-header title="Stream Setup" subtitle="{{ $channel->name }}" separator progress-indicator>
         <x-slot:actions>
             <x-button label="Channel Info" icon="o-information-circle"
@@ -106,4 +107,8 @@
     </div>
 
     <x-confirm-modal />
+    @else
+        <x-alert icon="o-shield-exclamation" class="alert-warning"
+            title="Stream setup is available once your channel is verified by the Thrive team." />
+    @endif
 </div>

@@ -20,15 +20,20 @@ class SubscriptionController extends Controller
     {
         $plans = SubscriptionPlan::query()
             ->where('is_active', true)
+            ->orderBy('duration_days')
             ->orderBy('price_mwk')
             ->get()
             ->map(fn (SubscriptionPlan $plan) => [
-                'id'          => $plan->id,
-                'name'        => $plan->name,
-                'description' => $plan->description,
-                'price'       => $plan->price_mwk,
-                'currency'    => 'MWK',
-                'interval'    => 'month',
+                'id'             => $plan->id,
+                'name'           => $plan->name,
+                'slug'           => $plan->slug,
+                'description'    => $plan->description,
+                'price'          => $plan->price_mwk,
+                'currency'       => 'MWK',
+                'interval'       => $plan->interval(),
+                'duration_days'  => $plan->duration_days,
+                'duration_label' => $plan->durationLabel(),
+                'features'       => $plan->features ?? [],
             ]);
 
         return response()->json(['data' => $plans]);
@@ -43,9 +48,10 @@ class SubscriptionController extends Controller
 
         if (! $profile) {
             return response()->json([
-                'status'  => 'none',
-                'plan'    => null,
-                'ends_at' => null,
+                'status'    => 'none',
+                'plan'      => null,
+                'starts_at' => null,
+                'ends_at'   => null,
             ]);
         }
 
@@ -56,19 +62,23 @@ class SubscriptionController extends Controller
 
         if (! $subscription) {
             return response()->json([
-                'status'  => 'none',
-                'plan'    => null,
-                'ends_at' => null,
+                'status'    => 'none',
+                'plan'      => null,
+                'starts_at' => null,
+                'ends_at'   => null,
             ]);
         }
 
         return response()->json([
             'status'  => $subscription->status,
             'plan'    => $subscription->plan ? [
-                'id'   => $subscription->plan->id,
-                'name' => $subscription->plan->name,
+                'id'            => $subscription->plan->id,
+                'name'          => $subscription->plan->name,
+                'interval'      => $subscription->plan->interval(),
+                'duration_days' => $subscription->plan->duration_days,
             ] : null,
-            'ends_at' => $subscription->ends_at?->toIso8601String(),
+            'starts_at' => $subscription->starts_at?->toIso8601String(),
+            'ends_at'   => $subscription->ends_at?->toIso8601String(),
         ]);
     }
 

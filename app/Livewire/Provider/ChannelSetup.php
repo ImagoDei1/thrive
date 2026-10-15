@@ -25,6 +25,13 @@ class ChannelSetup extends Component
             auth()->user()->providerProfile?->id === $channel->provider_id,
             403
         );
+
+        if (! $channel->isVerified()) {
+            $this->warning(
+                'Stream setup is available once your channel is verified.',
+                redirectTo: route('provider.channels.show', $channel),
+            );
+        }
     }
 
     public function confirmRegenerate(): void
@@ -39,6 +46,8 @@ class ChannelSetup extends Component
 
     public function regenerateKey(): void
     {
+        abort_unless($this->channel->isVerified(), 403);
+
         $this->channel->update(['rtmp_key' => Str::random(32)]);
         $this->showKey = true;
         $this->warning('Stream key regenerated. Update your encoder now — any active stream was disconnected.');

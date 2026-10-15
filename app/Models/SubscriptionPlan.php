@@ -17,6 +17,7 @@ class SubscriptionPlan extends Model
         'description',
         'price_mwk',
         'duration_days',
+        'grace_days',
         'is_active',
         'features',
     ];
@@ -24,13 +25,43 @@ class SubscriptionPlan extends Model
     protected function casts(): array
     {
         return [
-            'is_active' => 'boolean',
-            'features'  => 'array',
+            'duration_days' => 'integer',
+            'grace_days'    => 'integer',
+            'is_active'     => 'boolean',
+            'features'      => 'array',
         ];
     }
 
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class, 'plan_id');
+    }
+
+    /**
+     * Billing interval exposed to the Flutter app: day | week | month | year | custom.
+     */
+    public function interval(): string
+    {
+        return match ($this->duration_days) {
+            1       => 'day',
+            7       => 'week',
+            30, 31  => 'month',
+            365     => 'year',
+            default => 'custom',
+        };
+    }
+
+    /**
+     * Human label for the plan length, e.g. "24 hours", "1 week", "30 days".
+     */
+    public function durationLabel(): string
+    {
+        return match ($this->interval()) {
+            'day'   => '24 hours',
+            'week'  => '1 week',
+            'month' => '1 month',
+            'year'  => '1 year',
+            default => $this->duration_days . ' days',
+        };
     }
 }

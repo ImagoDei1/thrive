@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Jobs\DeleteBunnyVideoJob;
 use App\Jobs\ProvisionBunnyLibraryJob;
+use App\Jobs\SyncBunnyLibraryNameJob;
 use App\Jobs\SyncBunnyVideoJob;
 use App\Livewire\Provider\ContentUpload;
 use App\Models\Channel;
@@ -23,6 +24,7 @@ const LIB_KEY = 'library-key-abc';
 const VIDEO_GUID = '6b1a7d4e-1f3c-4b9a-8e2d-1234567890ab';
 
 beforeEach(function () {
+    Queue::fake(); // model events queue Bunny jobs; tests run the ones they need by hand
     config([
         'services.bunny.api_key'        => 'account-key',
         'services.bunny.webhook_secret' => 'hook-secret',
@@ -102,6 +104,7 @@ it('provisions a library and stores encrypted credentials', function () {
         ->and($provider->bunny_cdn_hostname)->toBe('vz-999.b-cdn.net')
         ->and($provider->getRawOriginal('bunny_library_api_key'))->not->toBe('new-lib-key');
 
+    Http::assertSent(fn ($r) => $r->url() === 'https://api.bunny.net/videolibrary' && $r['Name'] === 'grace-church');
     Http::assertSent(fn ($r) => $r->url() === 'https://api.bunny.net/videolibrary/999'
         && str_contains($r['WebhookUrl'], '/webhooks/bunny?secret=hook-secret')
         && $r['EnableTokenAuthentication'] === true);
@@ -262,7 +265,7 @@ it('ignores webhooks whose library does not match the item', function () {
     $this->postJson('/webhooks/bunny?secret=hook-secret', ['VideoLibraryId' => 1, 'VideoGuid' => VIDEO_GUID, 'Status' => 3])
         ->assertOk();
 
-    Queue::assertNothingPushed();
+    Queue::assertNotPushed(SyncBunnyVideoJob::class);
 });
 
 it('marks the item ready from the authoritative Bunny video state', function () {
@@ -470,4 +473,46 @@ it('does not let providers preview videos from another channel', function () {
     expect(fn () => Livewire::actingAs($provider->user)->test(\App\Livewire\Provider\ContentItems::class, ['channel' => $own])
         ->call('preview', $foreign->id))
         ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+});
+
+// ---------------------------------------------------------------------------
+// Library naming
+// ---------------------------------------------------------------------------
+
+it('names the library after the first channel slug, else the company name', function () {
+    $provider = bunnyProvider();
+    $bunny = app(BunnyStreamService::class);
+
+    expect($bunny->libraryName($provider))->toBe('grace-church');
+
+    $first = bunnyChannel($provider);
+    $this->travel(1)->minute();
+    bunnyChannel($provider);
+
+    expect($bunny->libraryName($provider))->toBe($first->slug);
+});
+
+it('queues a library rename when a channel is created or its slug changes', function () {
+    $provider = bunnyProvider();
+    $channel = bunnyChannel($provider);
+
+    Queue::assertPushed(SyncBunnyLibraryNameJob::class, 1);
+
+    $channel->update(['description' => 'x']);
+    Queue::assertPushed(SyncBunnyLibraryNameJob::class, 1);
+
+    $channel->update(['slug' => 'new-slug']);
+    Queue::assertPushed(SyncBunnyLibraryNameJob::class, 2);
+});
+
+it('renames the Bunny library to the channel slug', function () {
+    Http::fake(['api.bunny.net/*' => Http::response([], 200)]);
+    $provider = bunnyProvider();
+    $channel = bunnyChannel($provider);
+
+    app()->call([new SyncBunnyLibraryNameJob($provider->id), 'handle']);
+
+    Http::assertSent(fn ($r) => $r->url() === 'https://api.bunny.net/videolibrary/' . LIB_ID
+        && $r['Name'] === $channel->slug
+        && $r->header('AccessKey')[0] === 'account-key');
 });

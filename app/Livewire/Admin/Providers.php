@@ -23,7 +23,8 @@ class Providers extends Component
     public array $headers = [
         ['key' => 'company_name',     'label' => 'Company'],
         ['key' => 'email',            'label' => 'Email'],
-        ['key' => 'setup_fee_status', 'label' => 'Setup Fee'],
+        ['key' => 'kyc_status',       'label' => 'KYC'],
+        ['key' => 'setup_fee',        'label' => 'Setup Fee'],
         ['key' => 'is_approved',      'label' => 'Status'],
         ['key' => 'actions',          'label' => ''],
     ];
@@ -33,27 +34,12 @@ class Providers extends Component
         $this->resetPage();
     }
 
-    public function confirmApprove(string $id): void
-    {
-        $provider = ProviderProfile::findOrFail($id);
-        $this->askConfirm('approve', "Approve {$provider->company_name}?",
-            'This will make their channels visible to subscribers.',
-            $id, 'Approve', 'btn-success');
-    }
-
     public function confirmReject(string $id): void
     {
         $provider = ProviderProfile::findOrFail($id);
         $this->askConfirm('reject', "Revoke approval for {$provider->company_name}?",
             'Their channels will be hidden from subscribers.',
             $id, 'Revoke', 'btn-error');
-    }
-
-    public function approve(string $id): void
-    {
-        $provider = ProviderProfile::findOrFail($id);
-        $provider->update(['is_approved' => true, 'onboarded_at' => now()]);
-        $this->success("{$provider->company_name} approved.");
     }
 
     public function reject(string $id): void
@@ -66,9 +52,12 @@ class Providers extends Component
     public function render()
     {
         $providers = ProviderProfile::with(['user', 'channels'])
-            ->when($this->search, fn ($q) => $q->where('company_name', 'ilike', "%{$this->search}%")
-                ->orWhereHas('user', fn ($q) => $q->where('email', 'ilike', "%{$this->search}%")))
-            ->when($this->statusFilter !== '', fn ($q) => $q->where('is_approved', $this->statusFilter === 'approved'))
+            ->when($this->search, fn ($q) => $q->where(fn ($q) => $q->where('company_name', 'ilike', "%{$this->search}%")
+                ->orWhereHas('user', fn ($q) => $q->where('email', 'ilike', "%{$this->search}%"))))
+            ->when($this->statusFilter !== '', fn ($q) => match ($this->statusFilter) {
+                'kyc_review' => $q->where('kyc_status', 'submitted'),
+                default      => $q->where('is_approved', $this->statusFilter === 'approved'),
+            })
             ->withCount('channels')
             ->latest()
             ->paginate(15);

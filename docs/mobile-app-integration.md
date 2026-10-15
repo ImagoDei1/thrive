@@ -83,6 +83,34 @@ Payload:
 }
 ```
 
+## Subscription packages
+
+`GET /api/plans` returns every package currently offered (24-hour pass, weekly,
+monthly — admins can add or hide plans), shortest first:
+
+```json
+{
+  "id": "uuid",
+  "name": "24-Hour Pass",
+  "slug": "daily",
+  "description": "…",
+  "price": "300.00",
+  "currency": "MWK",
+  "interval": "day",          // day | week | month | year | custom
+  "duration_days": 1,
+  "duration_label": "24 hours",
+  "features": ["…"]
+}
+```
+
+- Don't hardcode "/ month" — render `duration_label` next to the price.
+- All packages unlock the full catalogue; they differ only in how long access lasts.
+- Buying a package while another is still running **extends** access: the new
+  one starts when the current one ends. `GET /api/subscription` returns
+  `starts_at`, `ends_at` and `plan.interval` for the latest purchase.
+- Access ends exactly at `ends_at` (`hls_playback_url` becomes `null`), even
+  for plans with a grace period — grace only affects the account status label.
+
 ## Not ready yet
 
 - **Payments**: `POST /api/subscription/checkout` currently returns a

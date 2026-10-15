@@ -35,7 +35,9 @@ class Payouts extends Component
         ['key' => 'period_label',  'label' => 'Period'],
         ['key' => 'watch_hours',   'label' => 'Watch Hours'],
         ['key' => 'share_percent', 'label' => 'Share %'],
-        ['key' => 'amount_mwk',    'label' => 'Amount (MWK)'],
+        ['key' => 'gross_amount_mwk', 'label' => 'Gross (MWK)'],
+        ['key' => 'setup_fee_mwk', 'label' => 'Setup Fee'],
+        ['key' => 'amount_mwk',    'label' => 'Payout (MWK)'],
         ['key' => 'status',        'label' => 'Status'],
         ['key' => 'actions',       'label' => ''],
     ];

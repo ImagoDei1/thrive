@@ -61,7 +61,9 @@
 
             <x-menu-separator />
 
-            <x-menu-item title="Providers" icon="o-building-office-2" link="{{ route('admin.providers.index') }}" wire:navigate />
+            @php $pendingKyc = \App\Models\ProviderProfile::where('kyc_status', 'submitted')->count(); @endphp
+            <x-menu-item title="Providers" icon="o-building-office-2" link="{{ route('admin.providers.index') }}" wire:navigate
+                :badge="$pendingKyc ? (string) $pendingKyc : null" badge-classes="badge-warning" />
             <x-menu-item title="Channels" icon="o-tv" link="{{ route('admin.channels.index') }}" wire:navigate />
             <x-menu-item title="Content" icon="o-film" link="{{ route('admin.content.index') }}" wire:navigate />
             <x-menu-item title="Change Requests" icon="o-pencil-square" link="{{ route('admin.change-requests.index') }}" wire:navigate />
@@ -69,6 +71,7 @@
             <x-menu-separator />
 
             <x-menu-item title="Subscribers" icon="o-users" link="{{ route('admin.subscribers.index') }}" wire:navigate />
+            <x-menu-item title="Plans" icon="o-ticket" link="{{ route('admin.plans.index') }}" wire:navigate />
 
             <x-menu-separator />
 
