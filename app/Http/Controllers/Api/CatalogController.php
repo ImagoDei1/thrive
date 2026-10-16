@@ -42,6 +42,7 @@ class CatalogController extends Controller
         $request->validate([
             'category' => 'nullable|string|max:100',
             'is_live'  => 'nullable|in:0,1',
+            'search'   => 'nullable|string|max:100',
             'page'     => 'nullable|integer|min:1',
         ]);
 
@@ -51,6 +52,10 @@ class CatalogController extends Controller
             ->where('is_active', true)
             ->when($request->filled('category'), fn ($q) => $q->where('category', $request->category))
             ->when($request->filled('is_live'), fn ($q) => $q->where('is_live', (bool) $request->is_live))
+            ->when($request->filled('search'), fn ($q) => $q->whereLike(
+                'name',
+                '%' . addcslashes($request->search, '%_\\') . '%',
+            ))
             ->orderByDesc('is_live')
             ->orderBy('name');
 
@@ -80,6 +85,7 @@ class CatalogController extends Controller
 
         $contentItems = $channel->contentItems()
             ->playable()
+            ->withLikeState($request->user())
             ->orderByDesc('published_at')
             ->get()
             ->each(fn ($item) => $item->setRelation('channel', $channel))
@@ -122,6 +128,7 @@ class CatalogController extends Controller
 
         $items = $playlist->contentItems()
             ->playable()
+            ->withLikeState($request->user())
             ->get()
             ->each(fn (ContentItem $item) => $item->setRelation('channel', $channel));
 
@@ -218,6 +225,8 @@ class CatalogController extends Controller
             'duration_seconds' => $item->duration_seconds,
             'published_at'     => $item->published_at?->toIso8601String(),
             'hls_url'          => $hasActiveSub ? $this->videoSources->hlsUrl($item) : null,
+            'like_count'       => (int) $item->likes_count,
+            'liked'            => (bool) $item->liked,
         ];
     }
 }

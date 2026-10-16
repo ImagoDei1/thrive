@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ContentItem extends Model
@@ -73,6 +74,18 @@ class ContentItem extends Model
             ->using(PlaylistItem::class)
             ->withPivot(['id', 'position', 'season_number'])
             ->withTimestamps();
+    }
+
+    public function likes(): HasMany
+    {
+        return $this->hasMany(ContentLike::class);
+    }
+
+    /** Adds likes_count and liked (by $user) for the catalog's like button. */
+    public function scopeWithLikeState(Builder $query, User $user): Builder
+    {
+        return $query->withCount('likes')
+            ->withExists(['likes as liked' => fn ($q) => $q->where('user_id', $user->id)]);
     }
 
     /** Ready, published and not unpublished: what subscribers may see in the catalog. */

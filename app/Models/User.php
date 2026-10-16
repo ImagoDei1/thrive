@@ -82,6 +82,11 @@ class User extends Authenticatable
         return $this->hasMany(Payment::class);
     }
 
+    public function contentLikes(): HasMany
+    {
+        return $this->hasMany(ContentLike::class);
+    }
+
     public function providerProfile(): HasOne
     {
         return $this->hasOne(ProviderProfile::class);

@@ -27,8 +27,8 @@ backend on 2026-07-05.
 
 ## Catalog & subscription gating
 
-- `GET /api/channels` — paginated (12/page), filters `?category=` and
-  `?is_live=1`. `GET /api/channels/{id}` for detail + content items.
+- `GET /api/channels` — paginated (12/page), filters `?category=`,
+  `?is_live=1` and `?search=` (case-insensitive substring of the name). `GET /api/channels/{id}` for detail + content items.
   All catalog endpoints require the Bearer token from `POST /api/login`.
 - **`hls_playback_url` is `null` when the user has no active subscription.**
   That is the paywall signal, not an error. Same applies to `hls_url` on
@@ -54,6 +54,18 @@ backend on 2026-07-05.
   player state. Heartbeats are unchanged: send the video's `content_id` as usual.
 - Episode and position numbers are derived from order, so they can shift if
   the provider reorders. Identify videos by `id`, never by number.
+
+## Likes
+
+- Every content item (channel detail, playlist items, series episodes) carries
+  `like_count` and `liked` (whether the current user liked it). Use them to
+  render the like button's initial state.
+- `POST /api/content-items/{id}/like` likes, `DELETE` on the same URL unlikes.
+  Both are idempotent and return `{content_id, liked, like_count}`; update the
+  button from the response rather than incrementing locally.
+- `404` means the video is no longer playable (unpublished, deleted or channel
+  inactive). Hide the button or drop the item.
+- Likes do not affect watch time or revenue.
 
 ## Watch-time heartbeats (revenue-critical)
 

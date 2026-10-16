@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CatalogController;
+use App\Http\Controllers\Api\ContentLikeController;
 use App\Http\Controllers\Api\HeartbeatController;
 use App\Http\Controllers\Api\MediaMtxController;
 use App\Http\Controllers\Api\SubscriptionController;
@@ -38,6 +39,10 @@ Route::middleware('auth.api')->group(function () {
     Route::get('channels',         [CatalogController::class, 'channels']);
     Route::get('channels/{id}',    [CatalogController::class, 'channel']);
     Route::get('playlists/{id}',   [CatalogController::class, 'playlist']);
+
+    // Likes
+    Route::post('content-items/{id}/like',   [ContentLikeController::class, 'store']);
+    Route::delete('content-items/{id}/like', [ContentLikeController::class, 'destroy']);
 
     // Plans & subscriptions
     Route::get('plans',                      [SubscriptionController::class, 'plans']);

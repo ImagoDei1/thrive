@@ -24,6 +24,7 @@ class ContentItems extends Component
         ['key' => 'title',            'label' => 'Title'],
         ['key' => 'type',             'label' => 'Type'],
         ['key' => 'duration_seconds', 'label' => 'Duration'],
+        ['key' => 'likes_count',      'label' => 'Likes'],
         ['key' => 'status',           'label' => 'Status'],
         ['key' => 'published_at',     'label' => 'Published'],
         ['key' => 'actions',          'label' => ''],
@@ -98,6 +99,7 @@ class ContentItems extends Component
         $this->channel->loadMissing('provider');
 
         $items = ContentItem::where('channel_id', $this->channel->id)
+            ->withCount('likes')
             ->latest()
             ->paginate(15);
 
