@@ -65,10 +65,10 @@
                     </x-slot:actions>
                 </x-list-item>
                 <x-list-item
-                    :item="['label' => 'Category', 'value' => ucfirst($channel->category ?? '—')]"
+                    :item="['label' => 'Category', 'value' => $channel->categoryLabel()]"
                     value="label" sub-value="value" no-separator no-hover />
                 <x-list-item
-                    :item="['label' => 'Language', 'value' => strtoupper($channel->language)]"
+                    :item="['label' => 'Language', 'value' => $channel->languageLabel()]"
                     value="label" sub-value="value" no-separator no-hover />
             </x-card>
 

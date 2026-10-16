@@ -28,11 +28,11 @@
             @endscope
 
             @scope('cell_current', $req)
-                <span class="text-sm text-base-content/60 line-through">{{ $req->current_value ?? '—' }}</span>
+                <span class="text-sm text-base-content/60 line-through">{{ $req->displayValue($req->current_value) }}</span>
             @endscope
 
             @scope('cell_requested', $req)
-                <span class="text-sm font-medium">{{ $req->requested_value }}</span>
+                <span class="text-sm font-medium">{{ $req->displayValue($req->requested_value) }}</span>
             @endscope
 
             @scope('cell_status', $req)

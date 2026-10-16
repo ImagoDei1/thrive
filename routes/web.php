@@ -49,6 +49,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('payouts',                \App\Livewire\Admin\Payouts::class)->name('payouts.index');
     Route::get('subscribers',            \App\Livewire\Admin\Subscribers::class)->name('subscribers.index');
     Route::get('plans',                  \App\Livewire\Admin\SubscriptionPlans::class)->name('plans.index');
+    Route::get('reference-data',         \App\Livewire\Admin\ReferenceData::class)->name('reference-data.index');
 });
 
 // Provider registration (guest only)

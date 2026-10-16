@@ -56,4 +56,14 @@ class ChannelChangeRequest extends Model
             default       => ucfirst($this->field),
         };
     }
+
+    /** Human-readable form of a current/requested value — reference codes resolve to their labels. */
+    public function displayValue(?string $value): string
+    {
+        return match ($this->field) {
+            'category' => ReferenceValue::label(ReferenceValue::CHANNEL_CATEGORY, $value),
+            'language' => ReferenceValue::label(ReferenceValue::CHANNEL_LANGUAGE, $value),
+            default    => $value ?? '—',
+        };
+    }
 }

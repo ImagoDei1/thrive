@@ -56,11 +56,11 @@
                 @else
                     <div class="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm px-2">
                         @foreach([
-                            ['Organisation type',   $organisationTypes[$provider->organisation_type] ?? '—'],
+                            ['Organisation type',   $provider->organisationTypeLabel()],
                             ['Registration number', $provider->registration_number ?: '—'],
                             ['Physical address',    $provider->physical_address ?? '—'],
                             ['District / City',     $provider->district ?? '—'],
-                            ['ID',                  ($idTypes[$provider->id_type] ?? '—').' · '.($provider->id_number ?? '—')],
+                            ['ID',                  $provider->idTypeLabel().' · '.($provider->id_number ?? '—')],
                             ['Mobile money',        $provider->mobile_money_number ?? '—'],
                             ['Bank account',        $provider->bank_account ?: '—'],
                             ['Submitted',           $provider->kyc_submitted_at?->format('d M Y, H:i') ?? '—'],
@@ -104,7 +104,7 @@
             <x-card title="Channels ({{ $provider->channels->count() }})" separator>
                 @forelse($provider->channels as $channel)
                     <x-list-item :item="$channel" value="name"
-                        :sub-value="ucfirst($channel->category ?? '—').' · '.strtoupper($channel->language)"
+                        :sub-value="$channel->categoryLabel().' · '.$channel->languageLabel()"
                         no-separator>
                         <x-slot:actions>
                             <x-badge :value="$channel->isVerified() ? 'Verified' : 'Unverified'"

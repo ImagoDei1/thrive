@@ -77,6 +77,10 @@
 
             <x-menu-item title="Billing Periods" icon="o-calendar-days" link="{{ route('admin.billing.index') }}" wire:navigate />
             <x-menu-item title="Payouts" icon="o-banknotes" link="{{ route('admin.payouts.index') }}" wire:navigate />
+
+            <x-menu-separator />
+
+            <x-menu-item title="Reference Data" icon="o-adjustments-horizontal" link="{{ route('admin.reference-data.index') }}" wire:navigate />
         </x-menu>
     </x-slot:sidebar>
 

@@ -171,13 +171,13 @@
                 <div class="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
                     @foreach([
                         ['Organisation',  $provider->company_name],
-                        ['Type',          $organisationTypes[$provider->organisation_type] ?? '—'],
+                        ['Type',          $provider->organisationTypeLabel()],
                         ['Registration',  $provider->registration_number ?: '—'],
                         ['Contact',       trim(($provider->contact_person ?? '').' · '.($provider->contact_phone ?? ''), ' ·')],
                         ['Address',       trim(($provider->physical_address ?? '').', '.($provider->district ?? ''), ', ')],
-                        ['ID',            ($idTypes[$provider->id_type] ?? '—').' · '.($provider->id_number ?? '—')],
+                        ['ID',            $provider->idTypeLabel().' · '.($provider->id_number ?? '—')],
                         ['Mobile money',  $provider->mobile_money_number ?? '—'],
-                        ['Channel',       $channel ? $channel->name.' · '.($categories[$channel->category] ?? ucfirst((string) $channel->category)).' · '.($languages[$channel->language] ?? strtoupper($channel->language)) : '—'],
+                        ['Channel',       $channel ? $channel->name.' · '.$channel->categoryLabel().' · '.$channel->languageLabel() : '—'],
                     ] as [$label, $value])
                         <div>
                             <p class="text-xs uppercase tracking-wide text-base-content/50">{{ $label }}</p>

@@ -50,21 +50,6 @@ class ProviderProfile extends Model
         'kyc_rejection_reason',
     ];
 
-    public const ORGANISATION_TYPES = [
-        'church'      => 'Church / Ministry',
-        'broadcaster' => 'Broadcaster / Media house',
-        'ngo'         => 'NGO / Non-profit',
-        'school'      => 'School / Education',
-        'business'    => 'Registered business',
-        'individual'  => 'Individual creator',
-    ];
-
-    public const ID_TYPES = [
-        'national_id'     => 'National ID',
-        'passport'        => 'Passport',
-        'drivers_licence' => "Driver's licence",
-    ];
-
     protected $hidden = [
         'bunny_library_api_key',
         'bunny_token_key',
@@ -87,7 +72,18 @@ class ProviderProfile extends Model
 
     public function isIndividual(): bool
     {
+        // 'individual' is a system reference value (cannot be deleted or hidden).
         return $this->organisation_type === 'individual';
+    }
+
+    public function organisationTypeLabel(): string
+    {
+        return ReferenceValue::label(ReferenceValue::ORGANISATION_TYPE, $this->organisation_type);
+    }
+
+    public function idTypeLabel(): string
+    {
+        return ReferenceValue::label(ReferenceValue::ID_TYPE, $this->id_type);
     }
 
     /** @return list<string> */

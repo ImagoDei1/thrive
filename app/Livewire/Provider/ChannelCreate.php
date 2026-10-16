@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Livewire\Provider;
 
+use App\Models\ReferenceValue;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Illuminate\Support\Str;
 use Mary\Traits\Toast;
 
 #[Title('New Channel')]
@@ -21,11 +22,17 @@ class ChannelCreate extends Component
     #[Rule('nullable|max:500')]
     public string $description = '';
 
-    #[Rule('nullable|max:50')]
     public string $category = '';
 
-    #[Rule('required|size:2')]
     public string $language = 'en';
+
+    protected function rules(): array
+    {
+        return [
+            'category' => ['required', ReferenceValue::rule(ReferenceValue::CHANNEL_CATEGORY)],
+            'language' => ['required', ReferenceValue::rule(ReferenceValue::CHANNEL_LANGUAGE)],
+        ];
+    }
 
     public function mount(): void
     {
@@ -70,7 +77,10 @@ class ChannelCreate extends Component
 
     public function render()
     {
-        return view('livewire.provider.channel-create')
+        return view('livewire.provider.channel-create', [
+            'categories' => ReferenceValue::selectOptions(ReferenceValue::CHANNEL_CATEGORY),
+            'languages'  => ReferenceValue::selectOptions(ReferenceValue::CHANNEL_LANGUAGE),
+        ])
             ->layout('components.provider-layout');
     }
 }

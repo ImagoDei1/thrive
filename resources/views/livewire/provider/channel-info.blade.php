@@ -20,8 +20,8 @@
                 @foreach([
                     ['name',        'Channel Name',  $channel->name],
                     ['description', 'Description',   $channel->description ?? '—'],
-                    ['category',    'Category',       ucfirst($channel->category ?? '—')],
-                    ['language',    'Language',       strtoupper($channel->language)],
+                    ['category',    'Category',       $channel->categoryLabel()],
+                    ['language',    'Language',       $channel->languageLabel()],
                 ] as [$field, $label, $value])
                     <x-list-item :item="['label' => $label, 'value' => $value]" value="value" sub-value="label" no-separator>
                         <x-slot:actions>
@@ -41,7 +41,7 @@
                 <x-card title="Change Request History" separator>
                     @foreach($recentRequests as $req)
                         <x-list-item
-                            :item="['label' => $req->fieldLabel(), 'value' => $req->requested_value]"
+                            :item="['label' => $req->fieldLabel(), 'value' => $req->displayValue($req->requested_value)]"
                             value="value" sub-value="label" no-separator>
                             <x-slot:actions>
                                 <x-badge :value="ucfirst($req->status)" :class="
@@ -147,14 +147,20 @@
                     <p class="text-base-content/50 text-xs mb-1">Current value</p>
                     <p class="font-medium">
                         {{ match($requestField) {
-                            'language' => strtoupper($channel->language),
-                            'category' => ucfirst($channel->category ?? '—'),
+                            'language' => $channel->languageLabel(),
+                            'category' => $channel->categoryLabel(),
                             default    => $channel->{$requestField} ?? '—'
                         } }}
                     </p>
                 </div>
 
-                @if(in_array($requestField, ['description']))
+                @if($requestField === 'category')
+                    <x-select label="New value" wire:model="requestedValue" :options="$categories"
+                        option-value="id" option-label="name" placeholder="Select category" native />
+                @elseif($requestField === 'language')
+                    <x-select label="New value" wire:model="requestedValue" :options="$languages"
+                        option-value="id" option-label="name" placeholder="Select language" native />
+                @elseif($requestField === 'description')
                     <x-textarea label="New value" wire:model="requestedValue" rows="3" />
                 @else
                     <x-input label="New value" wire:model="requestedValue" />

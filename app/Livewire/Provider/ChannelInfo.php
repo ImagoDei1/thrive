@@ -6,6 +6,7 @@ namespace App\Livewire\Provider;
 
 use App\Models\Channel;
 use App\Models\ChannelChangeRequest;
+use App\Models\ReferenceValue;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -24,10 +25,8 @@ class ChannelInfo extends Component
     #[Rule('nullable|image|max:2048')]
     public $logo = null;
 
-    #[Rule('required')]
     public string $requestField = '';
 
-    #[Rule('required|min:2|max:200')]
     public string $requestedValue = '';
 
     public array $editableFields = [
@@ -36,6 +35,24 @@ class ChannelInfo extends Component
         ['id' => 'category',    'name' => 'Category'],
         ['id' => 'language',    'name' => 'Language'],
     ];
+
+    protected function rules(): array
+    {
+        return [
+            'requestField'   => ['required', 'in:' . collect($this->editableFields)->pluck('id')->implode(',')],
+            'requestedValue' => match ($this->requestField) {
+                'category' => ['required', ReferenceValue::rule(ReferenceValue::CHANNEL_CATEGORY)],
+                'language' => ['required', ReferenceValue::rule(ReferenceValue::CHANNEL_LANGUAGE)],
+                default    => ['required', 'min:2', 'max:200'],
+            },
+        ];
+    }
+
+    public function updatedRequestField(): void
+    {
+        $this->requestedValue = '';
+        $this->resetValidation('requestedValue');
+    }
 
     public function mount(Channel $channel): void
     {
@@ -111,6 +128,8 @@ class ChannelInfo extends Component
         return view('livewire.provider.channel-info', [
             'pendingRequests' => $pendingRequests,
             'recentRequests'  => $recentRequests,
+            'categories'      => ReferenceValue::selectOptions(ReferenceValue::CHANNEL_CATEGORY),
+            'languages'       => ReferenceValue::selectOptions(ReferenceValue::CHANNEL_LANGUAGE),
         ])->layout('components.provider-layout');
     }
 }

@@ -159,9 +159,6 @@ class ProviderShow extends Component
     {
         $this->provider->load(['user', 'channels', 'payouts.billingPeriod', 'kycDocuments', 'kycReviewer']);
 
-        return view('livewire.admin.provider-show', [
-            'organisationTypes' => ProviderProfile::ORGANISATION_TYPES,
-            'idTypes'           => ProviderProfile::ID_TYPES,
-        ])->layout('components.admin-layout');
+        return view('livewire.admin.provider-show')->layout('components.admin-layout');
     }
 }

@@ -192,7 +192,9 @@ class CatalogController extends Controller
             'logo_url'         => $channel->logo_url,
             'banner_url'       => $channel->banner_url,
             'category'         => $channel->category,
+            'category_label'   => $channel->categoryLabel(),
             'language'         => $channel->language,
+            'language_label'   => $channel->languageLabel(),
             'is_live'          => $channel->is_live,
             'hls_playback_url' => $hasActiveSub ? $channel->hls_playback_url : null,
         ];

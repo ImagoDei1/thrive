@@ -6,6 +6,7 @@ namespace App\Livewire\Admin;
 
 use App\Livewire\Concerns\HasConfirmModal;
 use App\Models\Channel;
+use App\Models\ReferenceValue;
 use App\Services\ProviderVerificationService;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -100,8 +101,8 @@ class Channels extends Component
             ->latest()
             ->paginate(15);
 
-        $categories = Channel::select('category')->distinct()->whereNotNull('category')->pluck('category')
-            ->map(fn ($c) => ['id' => $c, 'name' => ucfirst($c)])->prepend(['id' => '', 'name' => 'All Categories']);
+        $categories = collect(ReferenceValue::selectOptions(ReferenceValue::CHANNEL_CATEGORY))
+            ->prepend(['id' => '', 'name' => 'All Categories']);
 
         return view('livewire.admin.channels', [
             'channels'   => $channels,

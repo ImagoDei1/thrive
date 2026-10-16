@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire\Provider;
 
-use App\Models\Channel;
 use App\Models\ProviderKycDocument;
 use App\Models\ProviderProfile;
+use App\Models\ReferenceValue;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -186,7 +186,7 @@ class Onboarding extends Component
     {
         $validated = $this->validate([
             'company_name'        => ['required', 'string', 'max:200'],
-            'organisation_type'   => ['required', Rule::in(array_keys(ProviderProfile::ORGANISATION_TYPES))],
+            'organisation_type'   => ['required', ReferenceValue::rule(ReferenceValue::ORGANISATION_TYPE)],
             'registration_number' => [Rule::requiredIf($this->organisation_type !== 'individual'), 'nullable', 'string', 'max:100'],
             'contact_person'      => ['required', 'string', 'max:200'],
             'contact_phone'       => ['required', 'string', 'max:20'],
@@ -204,8 +204,8 @@ class Onboarding extends Component
         $this->validate([
             'channel_name'        => ['required', 'string', 'min:3', 'max:100'],
             'channel_description' => ['nullable', 'string', 'max:500'],
-            'channel_category'    => ['required', Rule::in(array_keys(Channel::CATEGORIES))],
-            'channel_language'    => ['required', Rule::in(array_keys(Channel::LANGUAGES))],
+            'channel_category'    => ['required', ReferenceValue::rule(ReferenceValue::CHANNEL_CATEGORY)],
+            'channel_language'    => ['required', ReferenceValue::rule(ReferenceValue::CHANNEL_LANGUAGE)],
         ]);
 
         $attributes = [
@@ -240,7 +240,7 @@ class Onboarding extends Component
         $hasFront = $this->hasDocument('id_front');
 
         $this->validate([
-            'id_type'   => ['required', Rule::in(array_keys(ProviderProfile::ID_TYPES))],
+            'id_type'   => ['required', ReferenceValue::rule(ReferenceValue::ID_TYPE)],
             'id_number' => ['required', 'string', 'max:50'],
             'id_front'  => [$hasFront ? 'nullable' : 'required', ...self::FILE_RULES],
             'id_back'   => ['nullable', ...self::FILE_RULES],
@@ -327,11 +327,11 @@ class Onboarding extends Component
         return view('livewire.provider.onboarding', [
             'provider'          => $this->provider(),
             'steps'             => self::STEPS,
-            'organisationTypes' => ProviderProfile::ORGANISATION_TYPES,
-            'idTypes'           => ProviderProfile::ID_TYPES,
+            'organisationTypes' => ReferenceValue::options(ReferenceValue::ORGANISATION_TYPE),
+            'idTypes'           => ReferenceValue::options(ReferenceValue::ID_TYPE),
             'documentTypes'     => ProviderKycDocument::TYPES,
-            'categories'        => Channel::CATEGORIES,
-            'languages'         => Channel::LANGUAGES,
+            'categories'        => ReferenceValue::options(ReferenceValue::CHANNEL_CATEGORY),
+            'languages'         => ReferenceValue::options(ReferenceValue::CHANNEL_LANGUAGE),
         ])->layout('components.provider-layout');
     }
 }

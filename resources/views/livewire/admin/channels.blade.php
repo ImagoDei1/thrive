@@ -34,7 +34,7 @@
             @endscope
 
             @scope('cell_category', $channel)
-                <x-badge :value="ucfirst($channel->category ?? '—')" class="badge-ghost" />
+                <x-badge :value="$channel->categoryLabel()" class="badge-ghost" />
             @endscope
 
             @scope('cell_verified', $channel)
