@@ -46,6 +46,16 @@ return [
         'max_upload_bytes' => (int) env('BUNNY_MAX_UPLOAD_BYTES', 10 * 1024 * 1024 * 1024),
     ],
 
+    /*
+    | PayChangu direct mobile-money charges (Airtel Money / TNM Mpamba) for
+    | subscriber plans. See docs/paychangu.md.
+    */
+    'paychangu' => [
+        'secret_key'     => env('PAYCHANGU_SECRET_KEY'),
+        'webhook_secret' => env('PAYCHANGU_WEBHOOK_SECRET'),
+        'api_base'       => env('PAYCHANGU_API_BASE', 'https://api.paychangu.com'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

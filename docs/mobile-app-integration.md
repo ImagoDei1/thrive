@@ -98,7 +98,8 @@ Payload:
 ## Subscription packages
 
 `GET /api/plans` returns every package currently offered (24-hour pass, weekly,
-monthly — admins can add or hide plans), shortest first:
+monthly — admins can add or hide plans), shortest first. It is **public** — no
+Bearer token needed — so prices can be shown before the user signs up or logs in:
 
 ```json
 {
@@ -106,7 +107,7 @@ monthly — admins can add or hide plans), shortest first:
   "name": "24-Hour Pass",
   "slug": "daily",
   "description": "…",
-  "price": "300.00",
+  "price": 300,                // JSON number — read as `num`, not `int`/`String`
   "currency": "MWK",
   "interval": "day",          // day | week | month | year | custom
   "duration_days": 1,
@@ -119,12 +120,40 @@ monthly — admins can add or hide plans), shortest first:
 - All packages unlock the full catalogue; they differ only in how long access lasts.
 - Buying a package while another is still running **extends** access: the new
   one starts when the current one ends. `GET /api/subscription` returns
-  `starts_at`, `ends_at` and `plan.interval` for the latest purchase.
+  `starts_at`, `ends_at` and `plan.interval` for the latest paid purchase.
+  An unfinished checkout never hides it; `status: "pending"` only appears when
+  the user has never completed a payment.
 - Access ends exactly at `ends_at` (`hls_playback_url` becomes `null`), even
   for plans with a grace period — grace only affects the account status label.
 
-## Not ready yet
+## Paying for a plan (mobile money)
 
-- **Payments**: `POST /api/subscription/checkout` currently returns a
-  placeholder PayChangu URL — the real integration is not wired. Do not
-  build the final payment flow against it yet.
+Payment is a PayChangu **direct mobile-money charge**: there is no web page
+or redirect. The subscriber gets a PIN prompt on their own phone. All three
+endpoints need the Bearer token.
+
+1. `GET /api/payment-operators` — networks to offer, e.g.
+   `{"data": [{"ref_id": "…", "name": "Airtel Money", "short_code": "airtel"}, …]}`.
+   Let the user pick one; don't hardcode `ref_id`s.
+2. `POST /api/subscription/checkout` with
+   `{"plan_id": "uuid", "phone": "0991234567", "operator_ref_id": "…"}`.
+   `phone` may also be `+265991234567` or `991234567`. Returns **202**:
+   ```json
+   {
+     "reference": "THR-…",
+     "status": "pending",
+     "message": "Approve the payment on your phone by entering your mobile money PIN.",
+     "amount": 6800,
+     "currency": "MWK",
+     "subscription": null
+   }
+   ```
+   Show `message` and a waiting state. Errors: `422` (bad phone or operator,
+   or PayChangu refused the number; show `message`), `502`/`503` (PayChangu
+   unavailable; retry later). Limited to 10 checkouts a minute per user.
+3. `GET /api/subscription/checkout/{reference}` — poll every ~5 s while
+   `status` is `pending`. It ends as `completed` (with `subscription.starts_at`
+   / `ends_at`, refresh the catalogue so `hls_playback_url` appears) or
+   `failed` (declined, wrong PIN or timed out; offer to try again). Stop
+   polling after ~3 minutes and tell the user to check back; the payment can
+   still settle later and `GET /api/subscription` will show it.

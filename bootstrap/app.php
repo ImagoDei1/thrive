@@ -18,9 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'provider.approved' => \App\Http\Middleware\ProviderApprovedMiddleware::class,
             'mediamtx'          => \App\Http\Middleware\VerifyMediaMtxSecret::class,
             'bunny.webhook'     => \App\Http\Middleware\VerifyBunnyWebhookSecret::class,
+            'paychangu.webhook' => \App\Http\Middleware\VerifyPayChanguSignature::class,
         ]);
 
-        $middleware->validateCsrfTokens(except: ['webhooks/bunny']);
+        $middleware->validateCsrfTokens(except: ['webhooks/bunny', 'webhooks/paychangu']);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

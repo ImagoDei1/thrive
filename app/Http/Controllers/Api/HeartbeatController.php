@@ -42,10 +42,11 @@ class HeartbeatController extends Controller
             return response()->json(['error' => 'Channel not found or inactive'], 404);
         }
 
-        // Ensure watch session exists, create if missing (e.g. app resumed after crash)
-        WatchSession::firstOrCreate(
-            ['id' => $request->session_id],
-            [
+        // Ensure watch session exists, create if missing (e.g. app resumed after crash).
+        // `id` is not fillable, so it must be set explicitly — otherwise HasUuids generates
+        // a fresh UUID and AggregateHeartbeatsJob never finds the session to credit.
+        if (! WatchSession::whereKey($request->session_id)->exists()) {
+            $session = new WatchSession([
                 'user_id'      => $user->id,
                 'channel_id'   => $request->channel_id,
                 'content_id'   => $request->content_id,
@@ -54,8 +55,10 @@ class HeartbeatController extends Controller
                 'quality'      => $request->quality,
                 'started_at'   => now(),
                 'is_active'    => true,
-            ]
-        );
+            ]);
+            $session->id = $request->session_id;
+            $session->save();
+        }
 
         // Push heartbeat payload to Redis queue
         Redis::lpush('heartbeats:queue', json_encode([

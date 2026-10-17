@@ -11,6 +11,10 @@ Route::post('webhooks/bunny', \App\Http\Controllers\BunnyWebhookController::clas
     ->middleware(['bunny.webhook', 'throttle:120,1'])
     ->name('webhooks.bunny');
 
+Route::post('webhooks/paychangu', \App\Http\Controllers\PayChanguWebhookController::class)
+    ->middleware(['paychangu.webhook', 'throttle:120,1'])
+    ->name('webhooks.paychangu');
+
 Route::get('watch/{slug}', function (string $slug) {
     $channel = \App\Models\Channel::where('slug', $slug)->where('is_active', true)->firstOrFail();
 

@@ -146,6 +146,50 @@ it('lists every active package with its real interval', function () {
     ]);
 });
 
+it('shows plans to visitors who are not logged in', function () {
+    SubscriptionPlan::where('slug', 'weekly')->update(['is_active' => false]);
+
+    $response = $this->getJson('/api/plans');
+
+    $response->assertOk();
+    expect(collect($response->json('data'))->pluck('slug')->all())->toBe(['daily', 'monthly']);
+});
+
+it('returns plan prices as JSON numbers', function () {
+    $price = $this->getJson('/api/plans')->json('data.0.price');
+
+    expect($price)->toBeNumeric()->not->toBeString()
+        ->and((float) $price)->toBe(300.0);
+});
+
+it('keeps reporting the active pass after an abandoned checkout', function () {
+    $profile = planSubscriber();
+    $profile->user->forceFill(['api_token' => 'status-token'])->save();
+    $active = app(SubscriptionActivationService::class)->activate(pendingSubscription($profile, 'weekly'));
+
+    $this->travel(1)->minutes();
+    pendingSubscription($profile, 'monthly');
+    $this->travel(1)->minutes();
+    pendingSubscription($profile, 'daily')->update(['status' => 'failed']);
+
+    $this->withToken('status-token')->getJson('/api/subscription')
+        ->assertOk()
+        ->assertJsonPath('status', 'active')
+        ->assertJsonPath('plan.interval', 'week')
+        ->assertJsonPath('ends_at', $active->ends_at->toIso8601String());
+});
+
+it('reports pending when the user has never completed a payment', function () {
+    $profile = planSubscriber();
+    $profile->user->forceFill(['api_token' => 'pending-token'])->save();
+    pendingSubscription($profile, 'daily');
+
+    $this->withToken('pending-token')->getJson('/api/subscription')
+        ->assertOk()
+        ->assertJsonPath('status', 'pending')
+        ->assertJsonPath('ends_at', null);
+});
+
 it('lets an admin edit plan prices and hide a plan', function () {
     $admin = User::create(Arr::except(User::factory()->admin()->raw(), ['email_verified_at', 'remember_token']));
     $daily = SubscriptionPlan::where('slug', 'daily')->first();

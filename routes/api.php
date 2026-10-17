@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Route;
 Route::post('login', [AuthController::class, 'login']);
 Route::post('register', [AuthController::class, 'register']);
 
+// Prices must be visible before sign-up (app paywall + in-app browser sign-up)
+Route::get('plans', [SubscriptionController::class, 'plans']);
+
 // ---------------------------------------------------------------------------
 // MediaMTX server callbacks — not user auth. Secret travels as a query param
 // baked into the URLs configured in mediamtx.yml (authHTTPAddress / runOnReady
@@ -44,10 +47,11 @@ Route::middleware('auth.api')->group(function () {
     Route::post('content-items/{id}/like',   [ContentLikeController::class, 'store']);
     Route::delete('content-items/{id}/like', [ContentLikeController::class, 'destroy']);
 
-    // Plans & subscriptions
-    Route::get('plans',                      [SubscriptionController::class, 'plans']);
-    Route::get('subscription',               [SubscriptionController::class, 'status']);
-    Route::post('subscription/checkout',     [SubscriptionController::class, 'checkout']);
+    // Subscriptions
+    Route::get('subscription',              [SubscriptionController::class, 'status']);
+    Route::get('payment-operators',          [SubscriptionController::class, 'operators']);
+    Route::post('subscription/checkout',     [SubscriptionController::class, 'checkout'])->middleware('throttle:10,1');
+    Route::get('subscription/checkout/{reference}', [SubscriptionController::class, 'checkoutStatus'])->middleware('throttle:60,1');
 
     // Watch-time heartbeat (pre-existing)
     Route::post('heartbeat', HeartbeatController::class);
